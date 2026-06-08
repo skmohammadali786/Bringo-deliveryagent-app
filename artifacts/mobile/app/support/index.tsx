@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,18 +16,37 @@ const QUICK_ACTIONS = [
 ];
 
 const FAQ_ITEMS = [
-  { q: "How do I increase my earnings?", route: "/support/faq" },
-  { q: "How are delivery fees calculated?", route: "/support/faq" },
-  { q: "What if customer is not available?", route: "/support/faq" },
-  { q: "How to dispute a wrong order?", route: "/support/order-dispute" },
-  { q: "How to request payout early?", route: "/earnings/withdraw" },
-  { q: "What documents are needed for KYC?", route: "/profile/documents" },
+  {
+    q: "How do I increase my earnings?",
+    a: "Work during peak hours (7–9 AM, 12–2 PM, 6–9 PM) in surge zones. Maintain a 4.8+ rating for priority order assignments and complete daily incentive milestones visible in your Earnings tab.",
+  },
+  {
+    q: "How are delivery fees calculated?",
+    a: "Your fee = Base fare + Distance charge + Surge multiplier + Tips. Peak-hour surge can be up to 2.5× the base fare. You can see a full breakdown for any order in Earnings → History.",
+  },
+  {
+    q: "What if a customer is not available?",
+    a: "Wait 5 minutes at the delivery location and try calling. If unreachable, tap 'Customer Unavailable' in the delivery screen — our support team will take over and you'll still receive your delivery fee.",
+  },
+  {
+    q: "How to dispute a wrong or missing order?",
+    a: "Tap the order in your history, then tap 'Raise Dispute'. Attach a photo if possible. Our team reviews disputes within 24 hours and the fee is credited back if the issue is confirmed.",
+  },
+  {
+    q: "How to request an early payout?",
+    a: "Go to Earnings → Withdraw and tap 'Instant Payout'. A small convenience fee applies. Your earnings must be above ₹200 to initiate. Make sure your bank/UPI details are verified first.",
+  },
+  {
+    q: "What documents are needed for KYC?",
+    a: "You need: (1) Aadhaar card (front & back), (2) Driving licence, (3) Vehicle registration certificate, (4) A clear selfie. Upload them under Profile → Documents. Verification takes 1–2 working days.",
+  },
 ];
 
 export default function SupportScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   return (
     <ScrollView
@@ -106,24 +125,41 @@ export default function SupportScreen() {
           </Pressable>
         </View>
         <Card padding={0}>
-          {FAQ_ITEMS.map((item, i) => (
-            <Pressable
-              key={item.q}
-              onPress={() => router.push(item.route as any)}
-              style={({ pressed }) => [
-                styles.faqRow,
-                {
+          {FAQ_ITEMS.map((item, i) => {
+            const isOpen = expandedFaq === i;
+            return (
+              <View
+                key={item.q}
+                style={{
                   borderBottomColor: colors.border,
                   borderBottomWidth: i < FAQ_ITEMS.length - 1 ? 1 : 0,
-                  backgroundColor: pressed ? colors.muted + "40" : "transparent",
-                },
-              ]}
-            >
-              <Feather name="help-circle" size={16} color={colors.primary} />
-              <Text style={[styles.faqQ, { color: colors.foreground }]}>{item.q}</Text>
-              <Feather name="chevron-right" size={14} color={colors.mutedForeground} />
-            </Pressable>
-          ))}
+                }}
+              >
+                <Pressable
+                  onPress={() => setExpandedFaq(isOpen ? null : i)}
+                  style={({ pressed }) => [
+                    styles.faqRow,
+                    { backgroundColor: pressed ? colors.muted + "40" : "transparent" },
+                  ]}
+                >
+                  <View style={[styles.faqIconWrap, { backgroundColor: colors.primaryLight }]}>
+                    <Feather name="help-circle" size={14} color={colors.primary} />
+                  </View>
+                  <Text style={[styles.faqQ, { color: colors.foreground }]}>{item.q}</Text>
+                  <Feather
+                    name={isOpen ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color={isOpen ? colors.primary : colors.mutedForeground}
+                  />
+                </Pressable>
+                {isOpen && (
+                  <View style={[styles.faqAnswer, { backgroundColor: colors.muted + "50", borderTopColor: colors.border }]}>
+                    <Text style={[styles.faqAnswerText, { color: colors.mutedForeground }]}>{item.a}</Text>
+                  </View>
+                )}
+              </View>
+            );
+          })}
         </Card>
       </Animated.View>
 
@@ -179,7 +215,10 @@ const styles = StyleSheet.create({
   disputeTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
   disputeSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
   faqRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
-  faqQ: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
+  faqIconWrap: { width: 30, height: 30, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  faqQ: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", lineHeight: 20 },
+  faqAnswer: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 10, borderTopWidth: 1 },
+  faqAnswerText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
   hoursCard: { flexDirection: "row", alignItems: "center", gap: 12 },
   hoursTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
   hoursSub: { fontSize: 12, fontFamily: "Inter_400Regular" },

@@ -1,5 +1,5 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,17 +7,27 @@ import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 
-const HISTORY = [
-  { id: "1", date: "Today", orders: 7, base: 620, tips: 80, incentives: 200, total: 900 },
-  { id: "2", date: "Yesterday", orders: 9, base: 810, tips: 120, incentives: 300, total: 1230 },
-  { id: "3", date: "Mon, Jun 6", orders: 6, base: 540, tips: 60, incentives: 150, total: 750 },
-  { id: "4", date: "Sun, Jun 5", orders: 11, base: 990, tips: 150, incentives: 400, total: 1540 },
-  { id: "5", date: "Sat, Jun 4", orders: 13, base: 1170, tips: 200, incentives: 500, total: 1870 },
-  { id: "6", date: "Fri, Jun 3", orders: 8, base: 720, tips: 100, incentives: 200, total: 1020 },
-  { id: "7", date: "Thu, Jun 2", orders: 5, base: 450, tips: 50, incentives: 100, total: 600 },
+const RAW_HISTORY = [
+  { id: "1",  daysAgo: 0,  date: "Today, Jun 8",     orders: 7,  base: 620,  tips: 80,  incentives: 200, total: 900  },
+  { id: "2",  daysAgo: 1,  date: "Yesterday, Jun 7",  orders: 9,  base: 810,  tips: 120, incentives: 300, total: 1230 },
+  { id: "3",  daysAgo: 2,  date: "Sat, Jun 6",        orders: 6,  base: 540,  tips: 60,  incentives: 150, total: 750  },
+  { id: "4",  daysAgo: 3,  date: "Fri, Jun 5",        orders: 11, base: 990,  tips: 150, incentives: 400, total: 1540 },
+  { id: "5",  daysAgo: 4,  date: "Thu, Jun 4",        orders: 13, base: 1170, tips: 200, incentives: 500, total: 1870 },
+  { id: "6",  daysAgo: 5,  date: "Wed, Jun 3",        orders: 8,  base: 720,  tips: 100, incentives: 200, total: 1020 },
+  { id: "7",  daysAgo: 6,  date: "Tue, Jun 2",        orders: 5,  base: 450,  tips: 50,  incentives: 100, total: 600  },
+  { id: "8",  daysAgo: 8,  date: "Sun, Jun 1",        orders: 12, base: 1080, tips: 160, incentives: 350, total: 1590 },
+  { id: "9",  daysAgo: 11, date: "Thu, May 29",       orders: 15, base: 1350, tips: 220, incentives: 500, total: 2070 },
+  { id: "10", daysAgo: 15, date: "Sun, May 25",       orders: 7,  base: 630,  tips: 90,  incentives: 200, total: 920  },
+  { id: "11", daysAgo: 22, date: "Sun, May 18",       orders: 10, base: 900,  tips: 130, incentives: 300, total: 1330 },
+  { id: "12", daysAgo: 28, date: "Mon, May 12",       orders: 8,  base: 720,  tips: 95,  incentives: 210, total: 1025 },
+  { id: "13", daysAgo: 36, date: "Sun, May 4",        orders: 11, base: 990,  tips: 140, incentives: 380, total: 1510 },
+  { id: "14", daysAgo: 50, date: "Sun, Apr 20",       orders: 14, base: 1260, tips: 210, incentives: 520, total: 1990 },
+  { id: "15", daysAgo: 65, date: "Sat, Apr 5",        orders: 9,  base: 810,  tips: 120, incentives: 300, total: 1230 },
+  { id: "16", daysAgo: 80, date: "Fri, Mar 21",       orders: 7,  base: 630,  tips: 85,  incentives: 190, total: 905  },
 ];
 
 const PERIODS = ["Week", "Month", "3 Months"] as const;
+const PERIOD_DAYS: Record<typeof PERIODS[number], number> = { Week: 7, Month: 30, "3 Months": 91 };
 
 export default function EarningsHistoryScreen() {
   const colors = useColors();
@@ -25,8 +35,14 @@ export default function EarningsHistoryScreen() {
   const [period, setPeriod] = useState<typeof PERIODS[number]>("Week");
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const totalWeek = HISTORY.reduce((s, h) => s + h.total, 0);
-  const totalOrders = HISTORY.reduce((s, h) => s + h.orders, 0);
+  const filteredHistory = useMemo(
+    () => RAW_HISTORY.filter((h) => h.daysAgo < PERIOD_DAYS[period]),
+    [period]
+  );
+
+  const totalEarnings = filteredHistory.reduce((s, h) => s + h.total, 0);
+  const totalOrders = filteredHistory.reduce((s, h) => s + h.orders, 0);
+  const avgPerDay = filteredHistory.length > 0 ? Math.floor(totalEarnings / filteredHistory.length) : 0;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -41,10 +57,15 @@ export default function EarningsHistoryScreen() {
             {PERIODS.map((p) => (
               <Pressable
                 key={p}
-                onPress={() => setPeriod(p)}
-                style={[styles.periodChip, { backgroundColor: period === p ? colors.card : "transparent", borderRadius: 12 }]}
+                onPress={() => { setPeriod(p); setExpanded(null); }}
+                style={[
+                  styles.periodChip,
+                  { backgroundColor: period === p ? colors.card : "transparent", borderRadius: 12 },
+                ]}
               >
-                <Text style={[styles.periodText, { color: period === p ? colors.foreground : colors.mutedForeground }]}>{p}</Text>
+                <Text style={[styles.periodText, { color: period === p ? colors.foreground : colors.mutedForeground }]}>
+                  {p}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -57,14 +78,20 @@ export default function EarningsHistoryScreen() {
               <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Total Earnings</Text>
               <View style={styles.totalRow}>
                 <MaterialCommunityIcons name="currency-inr" size={24} color={colors.success} />
-                <Text style={[styles.totalAmount, { color: colors.success }]}>{totalWeek.toLocaleString("en-IN")}</Text>
+                <Text style={[styles.totalAmount, { color: colors.success }]}>
+                  {totalEarnings.toLocaleString("en-IN")}
+                </Text>
               </View>
-              <Text style={[styles.summaryOrders, { color: colors.mutedForeground }]}>{totalOrders} deliveries</Text>
+              <Text style={[styles.summaryOrders, { color: colors.mutedForeground }]}>
+                {totalOrders} deliveries · {filteredHistory.length} days
+              </Text>
             </View>
             <View style={styles.summaryRight}>
               <View style={[styles.avgCard, { backgroundColor: colors.successLight }]}>
                 <Text style={[styles.avgLabel, { color: colors.mutedForeground }]}>Avg / Day</Text>
-                <Text style={[styles.avgValue, { color: colors.success }]}>₹{Math.floor(totalWeek / HISTORY.length)}</Text>
+                <Text style={[styles.avgValue, { color: colors.success }]}>
+                  ₹{avgPerDay.toLocaleString("en-IN")}
+                </Text>
               </View>
             </View>
           </Card>
@@ -73,46 +100,67 @@ export default function EarningsHistoryScreen() {
         {/* Daily Breakdown */}
         <Animated.View entering={FadeInDown.delay(120).duration(400)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Daily Breakdown</Text>
-          <Card padding={0}>
-            {HISTORY.map((h, i) => (
-              <View key={h.id}>
-                <Pressable
-                  onPress={() => setExpanded((e) => e === h.id ? null : h.id)}
-                  style={[
-                    styles.historyRow,
-                    { borderBottomColor: colors.border, borderBottomWidth: i < HISTORY.length - 1 ? 1 : 0 },
-                  ]}
-                >
-                  <View style={styles.historyLeft}>
-                    <Text style={[styles.historyDate, { color: colors.foreground }]}>{h.date}</Text>
-                    <Text style={[styles.historyOrders, { color: colors.mutedForeground }]}>
-                      {h.orders} orders
+          {filteredHistory.length === 0 ? (
+            <Card style={styles.emptyCard}>
+              <Feather name="calendar" size={32} color={colors.mutedForeground} />
+              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No data for this period</Text>
+            </Card>
+          ) : (
+            <Card padding={0}>
+              {filteredHistory.map((h, i) => (
+                <View key={h.id}>
+                  <Pressable
+                    onPress={() => setExpanded((e) => e === h.id ? null : h.id)}
+                    style={[
+                      styles.historyRow,
+                      {
+                        borderBottomColor: colors.border,
+                        borderBottomWidth: expanded === h.id || i < filteredHistory.length - 1 ? 1 : 0,
+                      },
+                    ]}
+                  >
+                    <View style={styles.historyLeft}>
+                      <Text style={[styles.historyDate, { color: colors.foreground }]}>{h.date}</Text>
+                      <Text style={[styles.historyOrders, { color: colors.mutedForeground }]}>
+                        {h.orders} orders
+                      </Text>
+                    </View>
+                    <Text style={[styles.historyTotal, { color: colors.success }]}>
+                      ₹{h.total.toLocaleString("en-IN")}
                     </Text>
-                  </View>
-                  <Text style={[styles.historyTotal, { color: colors.success }]}>₹{h.total}</Text>
-                  <Feather
-                    name={expanded === h.id ? "chevron-up" : "chevron-down"}
-                    size={16}
-                    color={colors.mutedForeground}
-                  />
-                </Pressable>
-                {expanded === h.id && (
-                  <View style={[styles.breakdown, { backgroundColor: colors.muted + "50" }]}>
-                    {[
-                      { label: "Base Earnings", value: `₹${h.base}`, color: colors.foreground },
-                      { label: "Tips", value: `₹${h.tips}`, color: colors.success },
-                      { label: "Incentives", value: `₹${h.incentives}`, color: colors.accentPurple },
-                    ].map((row) => (
-                      <View key={row.label} style={styles.breakdownRow}>
-                        <Text style={[styles.breakdownLabel, { color: colors.mutedForeground }]}>{row.label}</Text>
-                        <Text style={[styles.breakdownValue, { color: row.color }]}>{row.value}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
-          </Card>
+                    <Feather
+                      name={expanded === h.id ? "chevron-up" : "chevron-down"}
+                      size={16}
+                      color={colors.mutedForeground}
+                    />
+                  </Pressable>
+                  {expanded === h.id && (
+                    <View
+                      style={[
+                        styles.breakdown,
+                        {
+                          backgroundColor: colors.muted + "50",
+                          borderBottomColor: colors.border,
+                          borderBottomWidth: i < filteredHistory.length - 1 ? 1 : 0,
+                        },
+                      ]}
+                    >
+                      {[
+                        { label: "Base Earnings", value: `₹${h.base.toLocaleString("en-IN")}`, color: colors.foreground },
+                        { label: "Tips",          value: `₹${h.tips.toLocaleString("en-IN")}`, color: colors.success },
+                        { label: "Incentives",    value: `₹${h.incentives.toLocaleString("en-IN")}`, color: colors.accentPurple },
+                      ].map((row) => (
+                        <View key={row.label} style={styles.breakdownRow}>
+                          <Text style={[styles.breakdownLabel, { color: colors.mutedForeground }]}>{row.label}</Text>
+                          <Text style={[styles.breakdownValue, { color: row.color }]}>{row.value}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              ))}
+            </Card>
+          )}
         </Animated.View>
       </ScrollView>
     </View>
@@ -145,4 +193,6 @@ const styles = StyleSheet.create({
   breakdownRow: { flexDirection: "row", justifyContent: "space-between" },
   breakdownLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
   breakdownValue: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  emptyCard: { alignItems: "center", gap: 12, paddingVertical: 32 },
+  emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
 });

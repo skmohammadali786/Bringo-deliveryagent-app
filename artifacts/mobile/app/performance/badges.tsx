@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
   sectionTitle: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   badgeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  badgeCard: { width: "47%", alignItems: "center", gap: 10, padding: 16, position: "relative" },
+  badgeCard: { width: "47%", alignItems: "center", gap: 10, padding: 16, position: "relative", minHeight: 180 },
   badgeIconWrap: { width: 64, height: 64, borderRadius: 24, alignItems: "center", justifyContent: "center" },
   earnedMark: {
     position: "absolute",

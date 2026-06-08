@@ -113,7 +113,9 @@ export default function ShopScreen() {
                 <Text style={[styles.shopBtnText, { color: colors.success }]}>Call</Text>
               </Pressable>
               <Pressable
-                onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(order.shop.address)}`)}
+                onPress={() =>
+                  Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(order.shop.address)}`)
+                }
                 style={[styles.shopBtn, { backgroundColor: colors.primaryLight, borderRadius: 12 }]}
               >
                 <Feather name="navigation" size={15} color={colors.primary} />
@@ -130,16 +132,74 @@ export default function ShopScreen() {
           </Card>
         </Animated.View>
 
+        {/* Shop Map */}
+        <Animated.View entering={FadeInDown.delay(40).duration(400)}>
+          <Card style={styles.shopMapCard}>
+            <View style={[styles.mapMockup, { backgroundColor: colors.muted, borderRadius: 12 }]}>
+              {/* Simulated map grid */}
+              <View style={styles.mapGrid}>
+                {Array.from({ length: 6 }).map((_, ri) => (
+                  <View key={ri} style={styles.mapGridRow}>
+                    {Array.from({ length: 8 }).map((_, ci) => (
+                      <View
+                        key={ci}
+                        style={[
+                          styles.mapGridCell,
+                          { borderColor: colors.border + "60" },
+                          (ri + ci) % 3 === 0 && { backgroundColor: colors.primary + "08" },
+                        ]}
+                      />
+                    ))}
+                  </View>
+                ))}
+              </View>
+
+              {/* Shop pin */}
+              <View style={styles.mapPinWrap}>
+                <View style={[styles.mapPinOuter, { backgroundColor: colors.primary + "30" }]}>
+                  <View style={[styles.mapPinInner, { backgroundColor: colors.primary }]}>
+                    <Feather name="shopping-bag" size={14} color="#FFF" />
+                  </View>
+                </View>
+                <View style={[styles.mapPinLabel, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <Text style={[styles.mapPinLabelText, { color: colors.foreground }]} numberOfLines={1}>
+                    {order.shop.name}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Directions button overlay */}
+              <Pressable
+                onPress={() =>
+                  Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(order.shop.address)}`)
+                }
+                style={[styles.mapDirectionsBtn, { backgroundColor: colors.primary, borderRadius: 12 }]}
+              >
+                <Feather name="navigation" size={13} color="#FFF" />
+                <Text style={styles.mapDirectionsBtnText}>Open in Maps</Text>
+              </Pressable>
+            </View>
+          </Card>
+        </Animated.View>
+
         {/* Progress */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
-          <View style={[styles.progressCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}>
+        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+          <View
+            style={[
+              styles.progressCard,
+              { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm },
+            ]}
+          >
             <View style={[styles.progressBar, { backgroundColor: colors.muted }]}>
               <View
                 style={[
                   styles.progressFill,
                   {
-                    backgroundColor: confirmedCount === order.items.length && allChecked ? colors.success : colors.primary,
-                    width: allChecked ? "100%" : `${(Object.keys(itemStatus).length / order.items.length) * 100}%`,
+                    backgroundColor:
+                      confirmedCount === order.items.length && allChecked ? colors.success : colors.primary,
+                    width: allChecked
+                      ? "100%"
+                      : `${(Object.keys(itemStatus).length / order.items.length) * 100}%`,
                   },
                 ]}
               />
@@ -151,10 +211,8 @@ export default function ShopScreen() {
         </Animated.View>
 
         {/* Items */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Collect These Items
-          </Text>
+        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Collect These Items</Text>
           <Card padding={0}>
             {order.items.map((item, i) => {
               const status = itemStatus[item.id];
@@ -166,11 +224,12 @@ export default function ShopScreen() {
                     {
                       borderBottomColor: colors.border,
                       borderBottomWidth: i < order.items.length - 1 ? 1 : 0,
-                      backgroundColor: status === "available"
-                        ? colors.successLight + "80"
-                        : status === "unavailable"
-                        ? colors.destructiveLight + "80"
-                        : "transparent",
+                      backgroundColor:
+                        status === "available"
+                          ? colors.successLight + "80"
+                          : status === "unavailable"
+                          ? colors.destructiveLight + "80"
+                          : "transparent",
                     },
                   ]}
                 >
@@ -180,8 +239,12 @@ export default function ShopScreen() {
                     </View>
                     <View style={styles.itemInfo}>
                       <Text style={[styles.itemName, { color: colors.foreground }]}>{item.name}</Text>
-                      {item.unit && <Text style={[styles.itemUnit, { color: colors.mutedForeground }]}>{item.unit}</Text>}
-                      <Text style={[styles.itemPrice, { color: colors.mutedForeground }]}>₹{item.price * item.quantity}</Text>
+                      {item.unit && (
+                        <Text style={[styles.itemUnit, { color: colors.mutedForeground }]}>{item.unit}</Text>
+                      )}
+                      <Text style={[styles.itemPrice, { color: colors.mutedForeground }]}>
+                        ₹{item.price * item.quantity}
+                      </Text>
                     </View>
                   </View>
                   <View style={styles.itemActions}>
@@ -192,7 +255,11 @@ export default function ShopScreen() {
                         { backgroundColor: status === "available" ? colors.success : colors.muted },
                       ]}
                     >
-                      <Feather name="check" size={16} color={status === "available" ? "#FFF" : colors.mutedForeground} />
+                      <Feather
+                        name="check"
+                        size={16}
+                        color={status === "available" ? "#FFF" : colors.mutedForeground}
+                      />
                     </Pressable>
                     <Pressable
                       onPress={() => handleItemToggle(item.id, "unavailable")}
@@ -201,7 +268,11 @@ export default function ShopScreen() {
                         { backgroundColor: status === "unavailable" ? colors.destructive : colors.muted },
                       ]}
                     >
-                      <Feather name="x" size={16} color={status === "unavailable" ? "#FFF" : colors.mutedForeground} />
+                      <Feather
+                        name="x"
+                        size={16}
+                        color={status === "unavailable" ? "#FFF" : colors.mutedForeground}
+                      />
                     </Pressable>
                   </View>
                 </View>
@@ -211,7 +282,7 @@ export default function ShopScreen() {
         </Animated.View>
 
         {/* Actions */}
-        <Animated.View entering={FadeInDown.delay(150).duration(400)} style={styles.quickActions}>
+        <Animated.View entering={FadeInDown.delay(160).duration(400)} style={styles.quickActions}>
           <Pressable
             onPress={() => router.push("/product/photo" as any)}
             style={[styles.qaBtn, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: 14 }]}
@@ -229,9 +300,18 @@ export default function ShopScreen() {
         </Animated.View>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 16, borderTopColor: colors.border, backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: insets.bottom + 16, borderTopColor: colors.border, backgroundColor: colors.background },
+        ]}
+      >
         <Button
-          title={allChecked ? "Confirm & Proceed to Pickup" : `Verify All Items (${Object.keys(itemStatus).length}/${order.items.length})`}
+          title={
+            allChecked
+              ? "Confirm & Proceed to Pickup"
+              : `Verify All Items (${Object.keys(itemStatus).length}/${order.items.length})`
+          }
           onPress={handleConfirmPickup}
           loading={loading}
           size="xl"
@@ -258,17 +338,52 @@ const styles = StyleSheet.create({
   shopActions: { flexDirection: "row", gap: 8 },
   shopBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, padding: 10 },
   shopBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  /* Shop map */
+  shopMapCard: { padding: 0, overflow: "hidden" },
+  mapMockup: { height: 180, overflow: "hidden", justifyContent: "center", alignItems: "center" },
+  mapGrid: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, flexDirection: "column" },
+  mapGridRow: { flex: 1, flexDirection: "row" },
+  mapGridCell: { flex: 1, borderWidth: 0.5 },
+  mapPinWrap: { alignItems: "center", gap: 6 },
+  mapPinOuter: { width: 60, height: 60, borderRadius: 30, alignItems: "center", justifyContent: "center" },
+  mapPinInner: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  mapPinLabel: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    maxWidth: 160,
+  },
+  mapPinLabelText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  mapDirectionsBtn: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  mapDirectionsBtnText: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFF" },
+  /* Progress */
   progressCard: { padding: 14, gap: 10, borderWidth: 1 },
   progressBar: { height: 8, borderRadius: 4, overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: 4 },
   progressText: { fontSize: 12, fontFamily: "Inter_500Medium" },
   sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.4, marginBottom: 4 },
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 14,
-    gap: 12,
-  },
+  /* Items */
+  itemRow: { flexDirection: "row", alignItems: "center", padding: 14, gap: 12 },
   itemLeft: { flex: 1, flexDirection: "row", gap: 12, alignItems: "center" },
   itemQty: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   itemQtyText: { fontSize: 13, fontFamily: "Inter_700Bold" },
