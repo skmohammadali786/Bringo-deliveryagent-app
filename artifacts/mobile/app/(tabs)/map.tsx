@@ -2,6 +2,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import MapView, { Callout, Marker, Polyline } from "react-native-maps";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
@@ -24,6 +25,16 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
   at_shop:    "At shop — collecting items",
   picked_up:  "Heading to customer",
   delivering: "Out for delivery",
+};
+
+// Demo coordinates — Bangalore (Koramangala → Indiranagar)
+const PICKUP_COORD  = { latitude: 12.9350, longitude: 77.6243 };
+const DROPOFF_COORD = { latitude: 12.9716, longitude: 77.6406 };
+const ORDER_MAP_REGION = {
+  latitude: 12.9533,
+  longitude: 77.6325,
+  latitudeDelta: 0.065,
+  longitudeDelta: 0.065,
 };
 
 export default function MapScreen() {
@@ -107,49 +118,90 @@ export default function MapScreen() {
       {/* Map Area */}
       {viewMode === "orders" && activeOrder ? (
         <View style={[styles.mapArea, { backgroundColor: colors.card }]}>
-          {/* Route card — works on all platforms */}
-          <View style={[styles.routeCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
-            <View style={styles.routeStop}>
-              <View style={[styles.routePin, { backgroundColor: colors.primary }]}>
-                <Feather name="shopping-bag" size={13} color="#FFF" />
+          {Platform.OS !== "web" ? (
+            /* Native: real MapView with markers, polyline, and callouts */
+            <MapView
+              style={StyleSheet.absoluteFill}
+              initialRegion={ORDER_MAP_REGION}
+              scrollEnabled={false}
+              pitchEnabled={false}
+              rotateEnabled={false}
+            >
+              {/* Pickup marker */}
+              <Marker coordinate={PICKUP_COORD} pinColor="#FF6B35" title={activeOrder.shop.name}>
+                <Callout tooltip={false}>
+                  <View style={styles.callout}>
+                    <Text style={styles.calloutTitle}>{activeOrder.shop.name}</Text>
+                    <Text style={styles.calloutSub} numberOfLines={2}>{activeOrder.shop.address}</Text>
+                    <Text style={styles.calloutTag}>📦 Pickup</Text>
+                  </View>
+                </Callout>
+              </Marker>
+
+              {/* Dropoff marker */}
+              <Marker coordinate={DROPOFF_COORD} title={activeOrder.customer.name}>
+                <Callout tooltip={false}>
+                  <View style={styles.callout}>
+                    <Text style={styles.calloutTitle}>{activeOrder.customer.name}</Text>
+                    <Text style={styles.calloutSub} numberOfLines={2}>{activeOrder.customer.address}</Text>
+                    <Text style={styles.calloutTag}>🏠 Dropoff</Text>
+                  </View>
+                </Callout>
+              </Marker>
+
+              {/* Route polyline */}
+              <Polyline
+                coordinates={[PICKUP_COORD, DROPOFF_COORD]}
+                strokeColor="#FF6B35"
+                strokeWidth={3}
+                lineDashPattern={[8, 5]}
+              />
+            </MapView>
+          ) : (
+            /* Web fallback: styled route card */
+            <View style={[styles.routeCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <View style={styles.routeStop}>
+                <View style={[styles.routePin, { backgroundColor: colors.primary }]}>
+                  <Feather name="shopping-bag" size={13} color="#FFF" />
+                </View>
+                <View style={styles.routeStopInfo}>
+                  <Text style={[styles.routeStopLabel, { color: colors.mutedForeground }]}>Pickup</Text>
+                  <Text style={[styles.routeStopName, { color: colors.foreground }]} numberOfLines={1}>
+                    {activeOrder.shop.name}
+                  </Text>
+                  <Text style={[styles.routeStopAddr, { color: colors.mutedForeground }]} numberOfLines={1}>
+                    {activeOrder.shop.address}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.routeStopInfo}>
-                <Text style={[styles.routeStopLabel, { color: colors.mutedForeground }]}>Pickup</Text>
-                <Text style={[styles.routeStopName, { color: colors.foreground }]} numberOfLines={1}>
-                  {activeOrder.shop.name}
-                </Text>
-                <Text style={[styles.routeStopAddr, { color: colors.mutedForeground }]} numberOfLines={1}>
-                  {activeOrder.shop.address}
-                </Text>
+
+              <View style={styles.routeConnectorRow}>
+                <View style={[styles.routeConnectorLine, { backgroundColor: colors.border }]} />
+                <View style={[styles.routeDistanceBadge, { backgroundColor: colors.muted }]}>
+                  <Feather name="navigation" size={10} color={colors.mutedForeground} />
+                  <Text style={[styles.routeDistanceText, { color: colors.mutedForeground }]}>~3.2 km</Text>
+                </View>
+                <View style={[styles.routeConnectorLine, { backgroundColor: colors.border }]} />
+              </View>
+
+              <View style={styles.routeStop}>
+                <View style={[styles.routePin, { backgroundColor: colors.success }]}>
+                  <Feather name="home" size={13} color="#FFF" />
+                </View>
+                <View style={styles.routeStopInfo}>
+                  <Text style={[styles.routeStopLabel, { color: colors.mutedForeground }]}>Dropoff</Text>
+                  <Text style={[styles.routeStopName, { color: colors.foreground }]} numberOfLines={1}>
+                    {activeOrder.customer.name}
+                  </Text>
+                  <Text style={[styles.routeStopAddr, { color: colors.mutedForeground }]} numberOfLines={1}>
+                    {activeOrder.customer.address}
+                  </Text>
+                </View>
               </View>
             </View>
+          )}
 
-            <View style={styles.routeConnectorRow}>
-              <View style={[styles.routeConnectorLine, { backgroundColor: colors.border }]} />
-              <View style={[styles.routeDistanceBadge, { backgroundColor: colors.muted }]}>
-                <Feather name="navigation" size={10} color={colors.mutedForeground} />
-                <Text style={[styles.routeDistanceText, { color: colors.mutedForeground }]}>~3.2 km</Text>
-              </View>
-              <View style={[styles.routeConnectorLine, { backgroundColor: colors.border }]} />
-            </View>
-
-            <View style={styles.routeStop}>
-              <View style={[styles.routePin, { backgroundColor: colors.success }]}>
-                <Feather name="home" size={13} color="#FFF" />
-              </View>
-              <View style={styles.routeStopInfo}>
-                <Text style={[styles.routeStopLabel, { color: colors.mutedForeground }]}>Dropoff</Text>
-                <Text style={[styles.routeStopName, { color: colors.foreground }]} numberOfLines={1}>
-                  {activeOrder.customer.name}
-                </Text>
-                <Text style={[styles.routeStopAddr, { color: colors.mutedForeground }]} numberOfLines={1}>
-                  {activeOrder.customer.address}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Status badge */}
+          {/* Status badge — shown on both platforms */}
           <View style={[styles.activeOrderBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primary + "30" }]}>
             <View style={[styles.activeOrderDot, { backgroundColor: colors.primary }]} />
             <Text style={[styles.activeOrderText, { color: colors.primary }]}>
@@ -434,4 +486,8 @@ const styles = StyleSheet.create({
   shopType: { fontSize: 12, fontFamily: "Inter_400Regular" },
   waitBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8 },
   waitText: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  callout: { padding: 10, maxWidth: 200, gap: 2 },
+  calloutTitle: { fontSize: 13, fontWeight: "700" },
+  calloutSub: { fontSize: 11, color: "#666", marginTop: 2 },
+  calloutTag: { fontSize: 11, marginTop: 4, color: "#888" },
 });
