@@ -1,11 +1,12 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const REWARDS_HISTORY = [
   { id: "1", type: "referral", label: "Referral Bonus — Suresh K.", amount: 500, date: "Jun 5, 2026", status: "credited" },
@@ -36,7 +37,7 @@ export default function ReferralRewardsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Summary */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <View style={styles.summaryRow}>
             <Card style={[styles.summaryCard, { backgroundColor: colors.successLight, borderColor: colors.success + "30" }]}>
               <View style={[styles.summaryIcon, { backgroundColor: colors.success + "20" }]}>
@@ -56,7 +57,7 @@ export default function ReferralRewardsScreen() {
         </Animated.View>
 
         {/* Reward Types */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Reward Types</Text>
           <View style={styles.typeCards}>
             {[
@@ -78,7 +79,7 @@ export default function ReferralRewardsScreen() {
         </Animated.View>
 
         {/* History */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(120)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Reward History</Text>
           <Card padding={0}>
             {REWARDS_HISTORY.map((r, i) => {

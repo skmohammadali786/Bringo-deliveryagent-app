@@ -3,11 +3,12 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function SelfieScreen() {
   const colors = useColors();
@@ -26,11 +27,11 @@ export default function SelfieScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title="Selfie Verification" showBack />
       <View style={[styles.content, { paddingTop: Platform.OS === "web" ? 40 : 40 }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Live Selfie</Text>
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>Take a live selfie to verify your identity. Must match your Aadhaar photo.</Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.selfieSection}>
+        <Animated.View entering={fadeInDownDelay(200)} style={styles.selfieSection}>
           <Pressable onPress={takePhoto} style={[styles.selfieBox, { backgroundColor: photo ? "transparent" : colors.muted, borderColor: photo ? colors.success : colors.primary, borderRadius: colors.radius * 2 }]}>
             {photo ? (
               <Image source={{ uri: photo }} style={[styles.selfieImg, { borderRadius: colors.radius * 2 }]} />

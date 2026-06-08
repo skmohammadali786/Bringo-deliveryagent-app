@@ -1,14 +1,16 @@
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Alert, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import React, { useState } from "react";
+import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
 import { useAppStore } from "@/store/appStore";
+import { fadeInDown, fadeInDownIndexed } from "@/constants/animations";
 
 const MENU = [
   {
@@ -91,24 +93,28 @@ export default function ProfileScreen() {
   const { agent, kycStatus, logout } = useAuthStore();
   const { avgRating, totalBadges } = useAppStore();
 
-  const handleLogout = () => {
-    Alert.alert("Log out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Log out",
-        style: "destructive",
-        onPress: () => {
-          logout();
-          router.replace("/(auth)/");
-        },
-      },
-    ]);
-  };
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
+  const handleLogout = () => setLogoutModalVisible(true);
 
   const kycColor = kycStatus === "approved" ? colors.success : kycStatus === "rejected" ? colors.destructive : colors.warning;
   const kycLabel = kycStatus === "approved" ? "Verified Agent" : kycStatus === "rejected" ? "KYC Rejected" : kycStatus === "under_review" ? "KYC Under Review" : "Complete KYC";
 
   return (
+    <View style={{ flex: 1 }}>
+      <ConfirmModal
+        visible={logoutModalVisible}
+        onClose={() => setLogoutModalVisible(false)}
+        title="Log Out"
+        body="Are you sure you want to log out of your account?"
+        confirmText="Log Out"
+        onConfirm={() => {
+          logout();
+          router.replace("/(auth)/");
+        }}
+        variant="destructive"
+        icon="log-out"
+      />
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={[
@@ -118,7 +124,7 @@ export default function ProfileScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Profile Hero */}
-      <Animated.View entering={FadeInDown.delay(0).duration(500)}>
+      <Animated.View entering={fadeInDown(0)}>
         <LinearGradient
           colors={["#FF6B35", "#E8501C"]}
           style={[styles.profileHero, { borderRadius: colors.radius }]}
@@ -177,7 +183,7 @@ export default function ProfileScreen() {
 
       {/* Menu Sections */}
       {MENU.map((section, si) => (
-        <Animated.View key={section.title} entering={FadeInDown.delay(60 + si * 50).duration(400)}>
+        <Animated.View key={section.title} entering={fadeInDownIndexed(60, si)}>
           <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
             {section.title.toUpperCase()}
           </Text>
@@ -223,6 +229,7 @@ export default function ProfileScreen() {
 
       <Text style={[styles.version, { color: colors.mutedForeground }]}>Bringo Agent v1.0.0 · Made with ❤️ in India</Text>
     </ScrollView>
+    </View>
   );
 }
 

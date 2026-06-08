@@ -3,8 +3,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Dimensions, Platform, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { fadeInUpDelay, fadeInUpIndexed } from "@/constants/animations";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
 
@@ -94,7 +95,7 @@ export default function WelcomeScreen() {
         {FEATURES.map((f, i) => (
           <Animated.View
             key={f.label}
-            entering={FadeInUp.delay(300 + i * 100).duration(500)}
+            entering={fadeInUpIndexed(300, i)}
             style={[styles.featureCard, { backgroundColor: colors.card, borderColor: colors.border }]}
           >
             <View style={[styles.featureIcon, { backgroundColor: f.bg }]}>
@@ -108,7 +109,7 @@ export default function WelcomeScreen() {
         ))}
 
         {/* CTA */}
-        <Animated.View entering={FadeInUp.delay(700).duration(500)} style={styles.ctaSection}>
+        <Animated.View entering={fadeInUpDelay(700)} style={styles.ctaSection}>
           <Button
             title="Get Started as Agent"
             onPress={() => router.push("/(auth)/login")}

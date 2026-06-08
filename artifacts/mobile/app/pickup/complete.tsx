@@ -2,10 +2,11 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function PickupCompleteScreen() {
   const colors = useColors();
@@ -22,7 +23,7 @@ export default function PickupCompleteScreen() {
         <Animated.View style={[styles.iconWrap, { backgroundColor: colors.success }, iconStyle]}>
           <Feather name="check" size={56} color="#FFF" />
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={{ gap: 10, alignItems: "center" }}>
+        <Animated.View entering={fadeInDownDelay(300)} style={{ gap: 10, alignItems: "center" }}>
           <Text style={[styles.title, { color: colors.foreground }]}>Pickup Complete!</Text>
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>
             Order picked up successfully. Now head to the customer's location.

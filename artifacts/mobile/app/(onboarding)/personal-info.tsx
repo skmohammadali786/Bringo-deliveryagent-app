@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -9,6 +9,7 @@ import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { StepIndicator } from "@/components/common/StepIndicator";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function PersonalInfoScreen() {
   const colors = useColors();
@@ -38,14 +39,14 @@ export default function PersonalInfoScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScreenHeader title="Personal Info" showBack />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 20 : 0 }]} keyboardShouldPersistTaps="handled">
-        <Animated.View entering={FadeInDown.delay(100).duration(500)}>
+        <Animated.View entering={fadeInDownDelay(100)}>
           <StepIndicator current={1} total={4} label="Step 1 of 4 — Personal Information" />
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(150).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(150)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Tell us about you</Text>
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>This information will be used to verify your identity</Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(250).duration(500)} style={styles.form}>
+        <Animated.View entering={fadeInDownDelay(250)} style={styles.form}>
           <Input label="Full Name (as per Aadhaar)" placeholder="Enter your full name" value={form.name} onChangeText={(t) => setForm((f) => ({ ...f, name: t }))} error={errors.name} autoCapitalize="words" />
           <Input label="Email Address (optional)" placeholder="your@email.com" value={form.email} onChangeText={(t) => setForm((f) => ({ ...f, email: t }))} error={errors.email} keyboardType="email-address" autoCapitalize="none" />
           <Input label="Date of Birth" placeholder="DD/MM/YYYY" value={form.dob} onChangeText={(t) => setForm((f) => ({ ...f, dob: t }))} error={errors.dob} keyboardType="numeric" />

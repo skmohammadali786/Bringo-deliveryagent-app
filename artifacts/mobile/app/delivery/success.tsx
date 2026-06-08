@@ -3,12 +3,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { Animated as RNAnimated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown, FadeInUp, ZoomIn } from "react-native-reanimated";
+import Animated, { FadeInUp, ZoomIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useColors } from "@/hooks/useColors";
 import { useAppStore } from "@/store/appStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function DeliverySuccessScreen() {
   const colors = useColors();
@@ -44,14 +45,14 @@ export default function DeliverySuccessScreen() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.heroText}>
+        <Animated.View entering={fadeInDownDelay(300)} style={styles.heroText}>
           <Text style={styles.heroTitle}>Delivered!</Text>
           <Text style={styles.heroSub}>Great job! Customer is happy 🎉</Text>
         </Animated.View>
       </LinearGradient>
 
       {/* Stats */}
-      <Animated.View entering={FadeInDown.delay(400).duration(500)} style={styles.content}>
+      <Animated.View entering={fadeInDownDelay(400)} style={styles.content}>
         {/* Earning Card */}
         <Card style={styles.earningCard}>
           <View style={styles.earningRow}>

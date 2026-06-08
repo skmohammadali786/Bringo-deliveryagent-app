@@ -4,10 +4,11 @@ import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const PERMS = [
   {
@@ -53,7 +54,7 @@ export default function PermissionsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.content, { paddingTop: insets.top + (Platform.OS === "web" ? 60 : 60) }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <View style={[styles.iconBig, { backgroundColor: colors.primaryLight }]}>
             <Feather name="shield" size={36} color={colors.primary} />
           </View>
@@ -67,7 +68,7 @@ export default function PermissionsScreen() {
           {PERMS.map((p, i) => (
             <Animated.View
               key={p.key}
-              entering={FadeInDown.delay(200 + i * 100).duration(500)}
+              entering={fadeInDownIndexed(200, i)}
               style={[
                 styles.permCard,
                 {
@@ -90,7 +91,7 @@ export default function PermissionsScreen() {
       </View>
 
       <Animated.View
-        entering={FadeInDown.delay(600).duration(500)}
+        entering={fadeInDownDelay(600)}
         style={[styles.footer, { paddingBottom: insets.bottom + 32 }]}
       >
         <Button title="Allow All Permissions" onPress={requestAll} loading={loading} size="xl" />

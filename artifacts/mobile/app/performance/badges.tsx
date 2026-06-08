@@ -1,11 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const EARNED_BADGES = [
   { id: "1", name: "Speed Demon", desc: "Completed 50+ deliveries in under 20 min", icon: "zap", color: "#FFB800", earned: true },
@@ -36,7 +37,7 @@ export default function BadgesScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Stats Banner */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.statsBanner, { backgroundColor: colors.accentPurple + "14" }]}>
             {[
               { label: "Earned", value: `${EARNED_BADGES.length}`, icon: "award", color: colors.accentPurple },
@@ -61,11 +62,11 @@ export default function BadgesScreen() {
         </Animated.View>
 
         {/* Earned */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(80)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Earned Badges</Text>
           <View style={styles.badgeGrid}>
             {EARNED_BADGES.map((b, i) => (
-              <Animated.View key={b.id} entering={FadeInDown.delay(100 + i * 60).duration(400)}>
+              <Animated.View key={b.id} entering={fadeInDownIndexed(100, i)}>
                 <Card style={styles.badgeCard} shadow>
                   <View style={[styles.badgeIconWrap, { backgroundColor: b.color + "18" }]}>
                     <Feather name={b.icon as any} size={28} color={b.color} />
@@ -84,7 +85,7 @@ export default function BadgesScreen() {
         </Animated.View>
 
         {/* In Progress */}
-        <Animated.View entering={FadeInDown.delay(240).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(240)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>In Progress</Text>
           <Card padding={0}>
             {LOCKED_BADGES.map((b, i) => (

@@ -1,13 +1,15 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const LANGUAGES = [
   { code: "en", name: "English", native: "English", flag: "🇬🇧" },
@@ -26,24 +28,33 @@ export default function LanguageScreen() {
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState("en");
   const [loading, setLoading] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   const handleSave = async () => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 800));
     setLoading(false);
-    Alert.alert("Language Updated", "App language has been changed. Please restart for full effect.", [
-      { text: "OK", onPress: () => router.back() },
-    ]);
+    setSuccessModal(true);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => setSuccessModal(false)}
+        title="Language Updated"
+        body="App language has been changed. Please restart for the full effect."
+        confirmText="OK"
+        onConfirm={() => router.back()}
+        variant="info"
+        icon="globe"
+      />
       <ScreenHeader title="Language" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.infoBanner, { backgroundColor: colors.infoLight }]}>
             <Feather name="globe" size={18} color={colors.info} />
             <Text style={[styles.infoText, { color: colors.info }]}>
@@ -52,7 +63,7 @@ export default function LanguageScreen() {
           </Card>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Card padding={0}>
             {LANGUAGES.map((lang, i) => (
               <Pressable

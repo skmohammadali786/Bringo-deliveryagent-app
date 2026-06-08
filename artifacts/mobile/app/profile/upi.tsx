@@ -1,14 +1,16 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Input } from "@/components/ui/Input";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay } from "@/constants/animations";
 
 const UPI_APPS = [
   { id: "gpay", name: "Google Pay", icon: "smartphone", color: "#4285F4" },
@@ -25,26 +27,46 @@ export default function UpiScreen() {
   const [selectedApp, setSelectedApp] = useState("gpay");
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(true);
+  const [verifyModal, setVerifyModal] = useState(false);
+  const [saveModal, setSaveModal] = useState(false);
 
   const handleVerify = async () => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
     setLoading(false);
     setVerified(true);
-    Alert.alert("✓ Verified", "UPI ID verified successfully!");
+    setVerifyModal(true);
   };
 
   const handleSave = async () => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 800));
     setLoading(false);
-    Alert.alert("Saved", "UPI details updated successfully.", [
-      { text: "OK", onPress: () => router.back() },
-    ]);
+    setSaveModal(true);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={verifyModal}
+        onClose={() => setVerifyModal(false)}
+        title="UPI Verified"
+        body="UPI ID verified successfully."
+        confirmText="Great"
+        onConfirm={() => setVerifyModal(false)}
+        variant="success"
+        icon="check-circle"
+      />
+      <ConfirmModal
+        visible={saveModal}
+        onClose={() => setSaveModal(false)}
+        title="Saved"
+        body="UPI details updated successfully."
+        confirmText="OK"
+        onConfirm={() => router.back()}
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="UPI Details" showBack />
       <ScrollView
         contentContainerStyle={[
@@ -53,7 +75,7 @@ export default function UpiScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View entering={FadeInDown.delay(50).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(50)}>
           <Card style={styles.infoCard}>
             <View style={[styles.infoIcon, { backgroundColor: colors.accentTealLight }]}>
               <Feather name="zap" size={24} color={colors.accentTeal} />
@@ -69,7 +91,7 @@ export default function UpiScreen() {
           </Card>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(100)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>UPI App</Text>
           <View style={styles.appGrid}>
             {UPI_APPS.map((app) => (
@@ -100,7 +122,7 @@ export default function UpiScreen() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(150)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>UPI ID</Text>
           <Card style={styles.upiCard}>
             <Input
@@ -128,7 +150,7 @@ export default function UpiScreen() {
           </Card>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(200)}>
           <Card style={[styles.noteCard, { backgroundColor: colors.infoLight }]}>
             <Feather name="info" size={16} color={colors.info} />
             <Text style={[styles.noteText, { color: colors.info }]}>

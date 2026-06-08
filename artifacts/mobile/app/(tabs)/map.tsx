@@ -3,9 +3,10 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import MapView, { Callout, Marker, Polyline } from "react-native-maps";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
+import { fadeInDown, fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
 import { useOrderStore } from "@/store/orderStore";
@@ -241,15 +242,13 @@ export default function MapScreen() {
                 <View style={[styles.updatedDot, { backgroundColor: colors.primary }]} />
                 <Text style={[styles.updatedText, { color: colors.primary }]}>In Progress</Text>
               </View>
-            </View>
-
             {[
               { label: "Items",      value: `${activeOrder.items.length} items`,      icon: "package"  },
               { label: "Customer",   value: activeOrder.customer.name,                icon: "user"     },
               { label: "Value",      value: `₹${activeOrder.totalAmount ?? activeOrder.items.reduce((s, i) => s + i.price * i.quantity, 0)}`, icon: "dollar-sign" },
               { label: "ETA",        value: "~12 min",                                icon: "clock"    },
             ].map((tile, i) => (
-              <Animated.View key={tile.label} entering={FadeInDown.delay(i * 60).duration(400)}>
+              <Animated.View key={tile.label} entering={fadeInDown(i)}>
                 <Card style={styles.orderTile}>
                   <View style={[styles.orderTileIcon, { backgroundColor: colors.primaryLight }]}>
                     <Feather name={tile.icon as any} size={18} color={colors.primary} />
@@ -282,7 +281,7 @@ export default function MapScreen() {
             </View>
 
             {HOTSPOTS.map((spot, i) => (
-              <Animated.View key={spot.id} entering={FadeInDown.delay(i * 70).duration(400)}>
+              <Animated.View key={spot.id} entering={fadeInDown(i)}>
                 <Card style={styles.hotspotCard}>
                   <View style={[styles.surgeTag, { backgroundColor: spot.surge >= "2.0×" ? "#FF4D4F18" : colors.primaryLight }]}>
                     <Text style={[styles.surgeVal, { color: spot.surge >= "2.0×" ? "#FF4D4F" : colors.primary }]}>
@@ -322,7 +321,7 @@ export default function MapScreen() {
               { name: "Quick Bites", type: "Restaurant", orders: 15, wait: "~12 min", color: "#FF6B35" },
               { name: "MedPlus",     type: "Pharmacy",   orders: 3,  wait: "~3 min",  color: "#4A90E2" },
             ].map((shop, i) => (
-              <Animated.View key={shop.name} entering={FadeInDown.delay(300 + i * 70).duration(400)}>
+              <Animated.View key={shop.name} entering={fadeInDownDelay(300 + i * 60)}>
                 <Card style={styles.shopCard}>
                   <View style={[styles.shopDot, { backgroundColor: shop.color + "20" }]}>
                     <MaterialCommunityIcons

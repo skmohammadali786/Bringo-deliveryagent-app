@@ -1,11 +1,14 @@
 import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const AVAILABLE_REWARDS = [
   { id: "1", title: "Free Helmet Upgrade",  points: 500,  icon: "shield",   color: "#FF6B35", value: "₹2500" },
@@ -26,27 +29,52 @@ export default function RewardsScreen() {
   const insets = useSafeAreaInsets();
   const [currentPoints] = useState(1250);
   const [redeemAmount, setRedeemAmount] = useState("");
+  const [confirmModal, setConfirmModal] = useState<{
+    visible: boolean;
+    title: string;
+    body: string;
+    confirmText: string;
+    onConfirm: () => void;
+    variant?: "destructive" | "warning" | "success" | "info";
+  }>({
+    visible: false,
+    title: "",
+    body: "",
+    confirmText: "",
+    onConfirm: () => {},
+  });
 
   const parsedAmount = parseInt(redeemAmount, 10) || 0;
   const canCustomRedeem = parsedAmount >= 100 && parsedAmount <= currentPoints;
 
+  const showAlert = (title: string, body: string) => {
+    setConfirmModal({
+      visible: true,
+      title,
+      body,
+      confirmText: "OK",
+      cancelText: "",
+      onConfirm: () => {},
+      variant: "success",
+    } as any);
+  };
+
   const handleCustomRedeem = () => {
     if (!canCustomRedeem) return;
     const cashback = Math.floor(parsedAmount * 0.8);
-    Alert.alert(
-      "Confirm Redemption",
-      `Redeem ${parsedAmount.toLocaleString("en-IN")} points for ₹${cashback} cashback?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Redeem",
-          onPress: () => {
-            setRedeemAmount("");
-            Alert.alert("Redeemed!", `₹${cashback} added to your wallet.`);
-          },
-        },
-      ]
-    );
+    setConfirmModal({
+      visible: true,
+      title: "Confirm Redemption",
+      body: `Redeem ${parsedAmount.toLocaleString("en-IN")} points for ₹${cashback} cashback?`,
+      confirmText: "Redeem",
+      onConfirm: () => {
+        setRedeemAmount("");
+        setTimeout(() => {
+          showAlert("Redeemed!", `₹${cashback} added to your wallet.`);
+        }, 500);
+      },
+      variant: "info",
+    });
   };
 
   return (
@@ -58,7 +86,7 @@ export default function RewardsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Points Balance */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.pointsCard, { backgroundColor: "#1A1A2E" }]}>
             <View style={styles.pointsLeft}>
               <Text style={styles.pointsLabel}>Your Points</Text>
@@ -83,7 +111,7 @@ export default function RewardsScreen() {
         </Animated.View>
 
         {/* Quick Redeem Card */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDown(1)}>
           <Card style={styles.quickRedeemCard}>
             <Text style={[styles.quickRedeemTitle, { color: colors.foreground }]}>Quick Redeem</Text>
             <Text style={[styles.quickRedeemSub, { color: colors.mutedForeground }]}>
@@ -135,14 +163,14 @@ export default function RewardsScreen() {
         </Animated.View>
 
         {/* Available Rewards Grid */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(180)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Redeem for Rewards</Text>
           <View style={styles.rewardsGrid}>
             {AVAILABLE_REWARDS.map((reward, i) => {
               const canRedeem = currentPoints >= reward.points;
               return (
-                <Animated.View key={reward.id} entering={FadeInDown.delay(140 + i * 40).duration(400)} style={styles.rewardWrapper}>
-                  <Card style={[styles.rewardCard, !canRedeem && { opacity: 0.55 }]}>
+                <Animated.View key={reward.id} entering={fadeInDownIndexed(240, i)} style={styles.rewardWrapper}>
+                  <Card style={[styles.rewardCard, !canRedeem && { opacity: 0.6 }]}>
                     <View style={[styles.rewardIcon, { backgroundColor: reward.color + "18" }]}>
                       <Feather name={reward.icon as any} size={22} color={reward.color} />
                     </View>
@@ -160,14 +188,18 @@ export default function RewardsScreen() {
                       disabled={!canRedeem}
                       onPress={() =>
                         canRedeem &&
-                        Alert.alert(
-                          "Confirm Redemption",
-                          `Use ${reward.points} pts for "${reward.title}"?`,
-                          [
-                            { text: "Cancel", style: "cancel" },
-                            { text: "Confirm", onPress: () => Alert.alert("Done!", `"${reward.title}" will arrive soon.`) },
-                          ]
-                        )
+                        setConfirmModal({
+                          visible: true,
+                          title: "Confirm Redemption",
+                          body: `Use ${reward.points} pts for "${reward.title}"?`,
+                          confirmText: "Confirm",
+                          onConfirm: () => {
+                            setTimeout(() => {
+                              showAlert("Done!", `"${reward.title}" will arrive soon.`);
+                            }, 500);
+                          },
+                          variant: "info",
+                        })
                       }
                     >
                       <Text style={[styles.redeemTxt, { color: canRedeem ? "#FFF" : colors.mutedForeground }]}>
@@ -182,7 +214,7 @@ export default function RewardsScreen() {
         </Animated.View>
 
         {/* Earned History */}
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(420)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Redeemed Rewards</Text>
           <Card padding={0}>
             {EARNED_REWARDS.map((r, i) => (
@@ -208,6 +240,11 @@ export default function RewardsScreen() {
           </Card>
         </Animated.View>
       </ScrollView>
+
+      <ConfirmModal
+        {...confirmModal}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, visible: false }))}
+      />
     </View>
   );
 }

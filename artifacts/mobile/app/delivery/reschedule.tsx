@@ -1,13 +1,15 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const TIME_SLOTS = [
   { id: "1", label: "Today, 2:00 PM – 4:00 PM" },
@@ -33,29 +35,51 @@ export default function RescheduleScreen() {
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [validationModal, setValidationModal] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   const handleConfirm = async () => {
     if (!selectedSlot || !selectedReason) {
-      Alert.alert("Required", "Please select a time slot and reason for rescheduling.");
+      setValidationModal(true);
       return;
     }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1000));
     setLoading(false);
-    Alert.alert("Rescheduled ✓", "Delivery has been rescheduled and customer notified.", [
-      { text: "OK", onPress: () => router.replace("/(tabs)/" as any) },
-    ]);
+    setSuccessModal(true);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={validationModal}
+        onClose={() => setValidationModal(false)}
+        title="Missing Selection"
+        body="Please select a time slot and a reason for rescheduling."
+        confirmText="OK"
+        onConfirm={() => setValidationModal(false)}
+        cancelText=""
+        variant="warning"
+        icon="alert-triangle"
+      />
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => { setSuccessModal(false); router.replace("/(tabs)/" as any); }}
+        title="Rescheduled"
+        body="Delivery has been rescheduled and the customer has been notified."
+        confirmText="Done"
+        onConfirm={() => router.replace("/(tabs)/" as any)}
+        cancelText=""
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="Reschedule Delivery" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Warning */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.warnCard, { backgroundColor: colors.warningLight, borderColor: colors.warning + "30" }]}>
             <Feather name="clock" size={20} color={colors.warning} />
             <Text style={[styles.warnText, { color: colors.foreground }]}>
@@ -65,7 +89,7 @@ export default function RescheduleScreen() {
         </Animated.View>
 
         {/* Time Slots */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Select New Time Slot</Text>
           <Card padding={0}>
             {TIME_SLOTS.map((slot, i) => (
@@ -92,7 +116,7 @@ export default function RescheduleScreen() {
         </Animated.View>
 
         {/* Reason */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(120)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Reason for Rescheduling</Text>
           <Card padding={0}>
             {REASONS.map((reason, i) => (

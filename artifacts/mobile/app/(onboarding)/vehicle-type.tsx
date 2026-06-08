@@ -2,13 +2,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { StepIndicator } from "@/components/common/StepIndicator";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const VEHICLES = [
   { id: "bike", label: "Bike", icon: "motorbike", desc: "Up to 20 kg", popular: true },
@@ -35,10 +36,10 @@ export default function VehicleTypeScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title="Vehicle Type" showBack />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 20 : 0 }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)}>
+        <Animated.View entering={fadeInDownDelay(100)}>
           <StepIndicator current={0} total={4} label="Step 1 of 4" />
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(150).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(150)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Choose your vehicle</Text>
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>
             This determines the type of orders you receive
@@ -46,7 +47,7 @@ export default function VehicleTypeScreen() {
         </Animated.View>
         <View style={styles.grid}>
           {VEHICLES.map((v, i) => (
-            <Animated.View key={v.id} entering={FadeInDown.delay(250 + i * 60).duration(400)} style={styles.gridItem}>
+            <Animated.View key={v.id} entering={fadeInDownIndexed(250, i)} style={styles.gridItem}>
               <Pressable
                 onPress={() => setSelected(v.id)}
                 style={[

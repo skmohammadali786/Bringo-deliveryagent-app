@@ -1,10 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Input } from "@/components/ui/Input";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
@@ -27,12 +28,13 @@ export default function VehicleScreen() {
   const [rcBook, setRcBook] = useState("Uploaded");
   const [insurance, setInsurance] = useState("Valid till Dec 2025");
   const [loading, setLoading] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   const handleSave = async () => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 900));
     setLoading(false);
-    Alert.alert("Saved", "Vehicle details updated.", [{ text: "OK", onPress: () => router.back() }]);
+    setSuccessModal(true);
   };
 
   return (
@@ -40,6 +42,16 @@ export default function VehicleScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => setSuccessModal(false)}
+        title="Saved"
+        body="Vehicle details updated successfully."
+        confirmText="OK"
+        onConfirm={() => router.back()}
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="Vehicle Details" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: 16 }]}

@@ -2,11 +2,12 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 const REASONS = [
   "Document photo was blurry or unclear",
@@ -29,7 +30,7 @@ export default function KycRejectedScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.content, { paddingTop: insets.top + (Platform.OS === "web" ? 80 : 100) }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.center}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.center}>
           <View style={[styles.iconWrap, { backgroundColor: colors.destructiveLight }]}>
             <Feather name="x" size={56} color={colors.destructive} />
           </View>
@@ -38,7 +39,7 @@ export default function KycRejectedScreen() {
             We were unable to verify your documents. Please re-upload and try again.
           </Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={[styles.reasonsBox, { backgroundColor: colors.destructiveLight, borderRadius: colors.radius }]}>
+        <Animated.View entering={fadeInDownDelay(300)} style={[styles.reasonsBox, { backgroundColor: colors.destructiveLight, borderRadius: colors.radius }]}>
           <Text style={[styles.reasonsTitle, { color: colors.destructive }]}>Common Reasons for Rejection</Text>
           {REASONS.map((r) => (
             <View key={r} style={styles.reason}>
@@ -47,7 +48,7 @@ export default function KycRejectedScreen() {
             </View>
           ))}
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(500).duration(500)} style={[styles.supportBox, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}>
+        <Animated.View entering={fadeInDownDelay(500)} style={[styles.supportBox, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}>
           <Feather name="headphones" size={18} color={colors.primary} />
           <Text style={[styles.supportText, { color: colors.mutedForeground }]}>
             Need help? Contact our support team at support@bringo.in

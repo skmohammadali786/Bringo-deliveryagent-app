@@ -1,11 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const PRIVACY_SETTINGS = [
   {
@@ -53,7 +54,7 @@ export default function PrivacyScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.infoBanner, { backgroundColor: colors.infoLight }]}>
             <Feather name="shield" size={20} color={colors.info} />
             <Text style={[styles.infoText, { color: colors.info }]}>
@@ -63,7 +64,7 @@ export default function PrivacyScreen() {
         </Animated.View>
 
         {PRIVACY_SETTINGS.map((group, gi) => (
-          <Animated.View key={group.section} entering={FadeInDown.delay(60 + gi * 60).duration(400)}>
+          <Animated.View key={group.section} entering={fadeInDownIndexed(60, gi)}>
             <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>{group.section.toUpperCase()}</Text>
             <Card padding={0}>
               {group.items.map((item, ii) => (
@@ -99,7 +100,7 @@ export default function PrivacyScreen() {
         ))}
 
         {/* Data Download */}
-        <Animated.View entering={FadeInDown.delay(260).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(260)}>
           <Card style={styles.dataCard}>
             <View style={[styles.dataIcon, { backgroundColor: colors.primaryLight }]}>
               <Feather name="download" size={20} color={colors.primary} />
@@ -114,7 +115,7 @@ export default function PrivacyScreen() {
           </Card>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(320).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(320)}>
           <Pressable style={[styles.deleteBtn, { borderColor: colors.destructive + "40", borderRadius: colors.radiusSm }]}>
             <Feather name="trash-2" size={16} color={colors.destructive} />
             <Text style={[styles.deleteTxt, { color: colors.destructive }]}>Delete My Account</Text>

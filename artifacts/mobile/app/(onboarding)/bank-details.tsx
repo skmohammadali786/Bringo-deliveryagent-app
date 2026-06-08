@@ -2,12 +2,13 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function BankDetailsScreen() {
   const colors = useColors();
@@ -30,15 +31,15 @@ export default function BankDetailsScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScreenHeader title="Bank Details" showBack />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 20 : 0 }]} keyboardShouldPersistTaps="handled">
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Bank Account</Text>
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>Your earnings will be transferred to this account</Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={[styles.secureBox, { backgroundColor: colors.successLight, borderRadius: colors.radiusSm }]}>
+        <Animated.View entering={fadeInDownDelay(200)} style={[styles.secureBox, { backgroundColor: colors.successLight, borderRadius: colors.radiusSm }]}>
           <Feather name="lock" size={14} color={colors.success} />
           <Text style={[styles.secureText, { color: colors.success }]}>256-bit encrypted & secure</Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(250).duration(500)} style={styles.form}>
+        <Animated.View entering={fadeInDownDelay(250)} style={styles.form}>
           <Input label="Account Number" placeholder="Enter account number" value={form.accountNum} onChangeText={(t) => setForm((f) => ({ ...f, accountNum: t.replace(/\D/g, "") }))} keyboardType="number-pad" error={errors.accountNum} secureTextEntry />
           <Input label="Confirm Account Number" placeholder="Re-enter account number" value={form.confirmNum} onChangeText={(t) => setForm((f) => ({ ...f, confirmNum: t.replace(/\D/g, "") }))} keyboardType="number-pad" error={errors.confirmNum} />
           <Input label="IFSC Code" placeholder="SBIN0001234" value={form.ifsc} onChangeText={(t) => setForm((f) => ({ ...f, ifsc: t.toUpperCase().slice(0, 11) }))} autoCapitalize="characters" error={errors.ifsc} hint="11-character code on your cheque book" />

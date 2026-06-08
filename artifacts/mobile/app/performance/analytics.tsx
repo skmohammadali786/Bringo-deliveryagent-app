@@ -1,12 +1,13 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useAppStore } from "@/store/appStore";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const PERIODS = ["Week", "Month", "3 Months"] as const;
 
@@ -36,7 +37,7 @@ export default function AnalyticsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Period Toggle */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <View style={[styles.periodRow, { backgroundColor: colors.muted, borderRadius: 14 }]}>
             {PERIODS.map((p) => (
               <Pressable
@@ -51,7 +52,7 @@ export default function AnalyticsScreen() {
         </Animated.View>
 
         {/* Orders Chart */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Card>
             <Text style={[styles.chartTitle, { color: colors.foreground }]}>Orders per Day</Text>
             <View style={styles.chart}>
@@ -77,7 +78,7 @@ export default function AnalyticsScreen() {
         </Animated.View>
 
         {/* Earnings Chart */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(120)}>
           <Card>
             <Text style={[styles.chartTitle, { color: colors.foreground }]}>Daily Earnings (₹)</Text>
             <View style={styles.chart}>
@@ -103,7 +104,7 @@ export default function AnalyticsScreen() {
         </Animated.View>
 
         {/* KPIs */}
-        <Animated.View entering={FadeInDown.delay(180).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(180)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Key Metrics</Text>
           <View style={styles.kpiGrid}>
             {[

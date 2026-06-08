@@ -1,11 +1,12 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const RAW_HISTORY = [
   { id: "1",  daysAgo: 0,  date: "Today, Jun 8",     orders: 7,  base: 620,  tips: 80,  incentives: 200, total: 900  },
@@ -52,7 +53,7 @@ export default function EarningsHistoryScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Period Selector */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <View style={[styles.periodRow, { backgroundColor: colors.muted, borderRadius: 14 }]}>
             {PERIODS.map((p) => (
               <Pressable
@@ -72,7 +73,7 @@ export default function EarningsHistoryScreen() {
         </Animated.View>
 
         {/* Summary */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Card style={styles.summaryCard}>
             <View style={styles.summaryLeft}>
               <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Total Earnings</Text>
@@ -98,7 +99,7 @@ export default function EarningsHistoryScreen() {
         </Animated.View>
 
         {/* Daily Breakdown */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(120)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Daily Breakdown</Text>
           {filteredHistory.length === 0 ? (
             <Card style={styles.emptyCard}>

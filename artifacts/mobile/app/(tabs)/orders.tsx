@@ -10,12 +10,13 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OrderCard } from "@/components/order/OrderCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDown } from "@/constants/animations";
 
 const TABS = [
   { key: "active", label: "Active" },
@@ -141,7 +142,7 @@ export default function OrdersScreen() {
           filtered.map((order, i) => (
             <Animated.View
               key={order.id}
-              entering={FadeInDown.delay(i * 60).duration(400)}
+              entering={fadeInDown(i)}
             >
               <OrderCard order={order} />
             </Animated.View>

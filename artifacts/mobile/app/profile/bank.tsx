@@ -1,14 +1,16 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Input } from "@/components/ui/Input";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 export default function BankScreen() {
   const colors = useColors();
@@ -21,18 +23,27 @@ export default function BankScreen() {
   const [accountHolder, setAccountHolder] = useState("Rahul Sharma");
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(true);
+  const [successModal, setSuccessModal] = useState(false);
 
   const handleSave = async () => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1000));
     setLoading(false);
-    Alert.alert("Bank Account Updated", "Your bank details have been saved. Payouts will be processed within 2 business days.", [
-      { text: "OK", onPress: () => router.back() },
-    ]);
+    setSuccessModal(true);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => setSuccessModal(false)}
+        title="Bank Account Updated"
+        body="Your bank details have been saved. Payouts will be processed within 2 business days."
+        confirmText="OK"
+        onConfirm={() => router.back()}
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="Bank Account" showBack />
       <ScrollView
         contentContainerStyle={[
@@ -42,7 +53,7 @@ export default function BankScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Current Account */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.currentCard, { backgroundColor: colors.successLight, borderColor: colors.success + "30" }]}>
             <View style={styles.currentLeft}>
               <View style={[styles.bankIcon, { backgroundColor: colors.success + "18" }]}>
@@ -63,7 +74,7 @@ export default function BankScreen() {
         </Animated.View>
 
         {/* Form */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Card style={styles.formCard}>
             <Text style={[styles.formTitle, { color: colors.foreground }]}>Update Bank Details</Text>
             <Input
@@ -101,7 +112,7 @@ export default function BankScreen() {
         </Animated.View>
 
         {/* Notice */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(120)}>
           <Card style={[styles.noticeCard, { backgroundColor: colors.warningLight, borderColor: colors.warning + "30" }]}>
             <Feather name="alert-triangle" size={18} color={colors.warning} />
             <View style={{ flex: 1, gap: 3 }}>
@@ -114,7 +125,7 @@ export default function BankScreen() {
         </Animated.View>
 
         {/* Payout Info */}
-        <Animated.View entering={FadeInDown.delay(160).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(160)}>
           <Card style={styles.payoutCard}>
             <Text style={[styles.payoutTitle, { color: colors.foreground }]}>Payout Schedule</Text>
             {[

@@ -1,14 +1,16 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 export default function PickupConfirmScreen() {
   const colors = useColors();
@@ -17,6 +19,7 @@ export default function PickupConfirmScreen() {
   const { orders, updateOrderStatus } = useOrderStore();
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
+  const [validationModal, setValidationModal] = useState(false);
   const refs = [useRef<TextInput>(null), useRef<TextInput>(null), useRef<TextInput>(null), useRef<TextInput>(null)];
 
   const activeOrder = orders.find((o) => o.status === "at_shop");
@@ -33,7 +36,7 @@ export default function PickupConfirmScreen() {
 
   const handleConfirm = async () => {
     if (fullOtp.length !== 4) {
-      Alert.alert("Enter OTP", "Please enter the 4-digit OTP from the shop.");
+      setValidationModal(true);
       return;
     }
     setLoading(true);
@@ -45,6 +48,16 @@ export default function PickupConfirmScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={validationModal}
+        onClose={() => setValidationModal(false)}
+        title="Enter OTP"
+        body="Please enter the 4-digit OTP from the shop to confirm pickup."
+        confirmText="OK"
+        onConfirm={() => setValidationModal(false)}
+        variant="warning"
+        icon="hash"
+      />
       <ScreenHeader title="Confirm Pickup" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
@@ -52,7 +65,7 @@ export default function PickupConfirmScreen() {
       >
         {/* Order Info */}
         {activeOrder && (
-          <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+          <Animated.View entering={fadeInDown(0)}>
             <Card style={styles.orderCard}>
               <View style={[styles.shopIcon, { backgroundColor: colors.primaryLight }]}>
                 <Feather name="shopping-bag" size={24} color={colors.primary} />
@@ -68,7 +81,7 @@ export default function PickupConfirmScreen() {
         )}
 
         {/* OTP Input */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(80)}>
           <Card style={styles.otpCard}>
             <Text style={[styles.otpTitle, { color: colors.foreground }]}>Enter Shop OTP</Text>
             <Text style={[styles.otpSub, { color: colors.mutedForeground }]}>
@@ -99,7 +112,7 @@ export default function PickupConfirmScreen() {
 
         {/* Items Checklist */}
         {activeOrder && (
-          <Animated.View entering={FadeInDown.delay(160).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(160)}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Items to Collect</Text>
             <Card padding={0}>
               {activeOrder.items.map((item, i) => (

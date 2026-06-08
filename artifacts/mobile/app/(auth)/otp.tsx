@@ -9,12 +9,13 @@ import {
   TextInput,
   View,
 } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 const OTP_LENGTH = 6;
 
@@ -70,7 +71,7 @@ export default function OtpScreen() {
           { paddingBottom: insets.bottom + 40, paddingTop: Platform.OS === "web" ? 20 : 0 },
         ]}
       >
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Verify OTP</Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             6-digit code sent to{"\n"}
@@ -80,7 +81,7 @@ export default function OtpScreen() {
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.otpContainer}>
+        <Animated.View entering={fadeInDownDelay(200)} style={styles.otpContainer}>
           <Pressable onPress={() => inputRef.current?.focus()} style={styles.otpRow}>
             {otp.map((digit, i) => (
               <View
@@ -115,7 +116,7 @@ export default function OtpScreen() {
           ) : null}
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.resend}>
+        <Animated.View entering={fadeInDownDelay(300)} style={styles.resend}>
           {timer > 0 ? (
             <Text style={[styles.timerText, { color: colors.mutedForeground }]}>
               Resend OTP in{" "}

@@ -1,14 +1,16 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useAppStore } from "@/store/appStore";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const AMOUNTS = [200, 500, 1000, 2000];
 
@@ -21,6 +23,8 @@ export default function WithdrawScreen() {
   const [customAmount, setCustomAmount] = useState("");
   const [method, setMethod] = useState<"upi" | "bank">("upi");
   const [loading, setLoading] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ title: string; body: string } | null>(null);
 
   const withdrawAmount = selectedAmount ?? Number(customAmount) ?? 0;
   const fee = 10;
@@ -28,32 +32,52 @@ export default function WithdrawScreen() {
 
   const handleWithdraw = async () => {
     if (!withdrawAmount || withdrawAmount < 100) {
-      Alert.alert("Minimum ₹100", "Please enter a valid withdrawal amount of at least ₹100.");
+      setErrorModal({ title: "Minimum ₹100", body: "Please enter a valid withdrawal amount of at least ₹100." });
       return;
     }
     if (withdrawAmount > earnings.today) {
-      Alert.alert("Insufficient Balance", `You only have ₹${earnings.today} available.`);
+      setErrorModal({ title: "Insufficient Balance", body: `You only have ₹${earnings.today} available.` });
       return;
     }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1500));
     setLoading(false);
-    Alert.alert(
-      "Withdrawal Initiated! 🎉",
-      `₹${netAmount} will be credited to your ${method === "upi" ? "UPI account" : "bank account"} within 10 minutes.`,
-      [{ text: "Done", onPress: () => router.back() }]
-    );
+    setSuccessModal(true);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => { setSuccessModal(false); router.back(); }}
+        title="Withdrawal Initiated!"
+        body={`₹${netAmount} will be credited to your ${method === "upi" ? "UPI account" : "bank account"} within 10 minutes.`}
+        confirmText="Done"
+        onConfirm={() => router.back()}
+        cancelText=""
+        variant="success"
+        icon="check-circle"
+      />
+      {errorModal && (
+        <ConfirmModal
+          visible={!!errorModal}
+          onClose={() => setErrorModal(null)}
+          title={errorModal.title}
+          body={errorModal.body}
+          confirmText="OK"
+          onConfirm={() => setErrorModal(null)}
+          cancelText=""
+          variant="warning"
+          icon="alert-triangle"
+        />
+      )}
       <ScreenHeader title="Withdraw Earnings" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 120, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Balance */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.balanceCard, { backgroundColor: colors.successLight, borderColor: colors.success + "30" }]}>
             <View style={styles.balanceLeft}>
               <Text style={[styles.balLabel, { color: colors.mutedForeground }]}>Available Balance</Text>
@@ -70,7 +94,7 @@ export default function WithdrawScreen() {
         </Animated.View>
 
         {/* Amount Selector */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Select Amount</Text>
           <View style={styles.amountGrid}>
             {AMOUNTS.map((a) => (
@@ -109,7 +133,7 @@ export default function WithdrawScreen() {
         </Animated.View>
 
         {/* Method */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(120)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Withdraw To</Text>
           <View style={styles.methodRow}>
             {([
@@ -148,7 +172,7 @@ export default function WithdrawScreen() {
 
         {/* Summary */}
         {withdrawAmount > 0 && (
-          <Animated.View entering={FadeInDown.delay(180).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(180)}>
             <Card style={styles.summaryCard}>
               <Text style={[styles.summaryTitle, { color: colors.foreground }]}>Summary</Text>
               {[

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Platform, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown } from "@/constants/animations";
 
 const NOTIFICATION_GROUPS = [
   {
@@ -57,7 +58,7 @@ export default function NotificationSettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {NOTIFICATION_GROUPS.map((group, gi) => (
-          <Animated.View key={group.title} entering={FadeInDown.delay(gi * 70).duration(400)}>
+          <Animated.View key={group.title} entering={fadeInDown(gi)}>
             <Text style={[styles.groupTitle, { color: colors.mutedForeground }]}>{group.title.toUpperCase()}</Text>
             <Card padding={0}>
               {group.items.map((item, ii) => (

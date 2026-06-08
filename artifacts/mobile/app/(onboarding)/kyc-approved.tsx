@@ -5,7 +5,6 @@ import React, { useEffect } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import Animated, {
   FadeInDown,
-  FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -13,6 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay, fadeInUpDelay } from "@/constants/animations";
 
 export default function KycApprovedScreen() {
   const colors = useColors();
@@ -33,13 +33,13 @@ export default function KycApprovedScreen() {
         <Animated.View style={[styles.iconWrap, { backgroundColor: colors.success }, iconStyle]}>
           <Feather name="check" size={56} color="#FFFFFF" />
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.textSection}>
+        <Animated.View entering={fadeInDownDelay(300)} style={styles.textSection}>
           <Text style={[styles.title, { color: colors.foreground }]}>KYC Approved!</Text>
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>
             Congratulations! You're now a verified Bringo delivery partner. Start earning today.
           </Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(500).duration(500)} style={styles.benefits}>
+        <Animated.View entering={fadeInDownDelay(500)} style={styles.benefits}>
           {["Start accepting delivery orders", "Earn up to ₹1,500 per day", "Daily payouts to your account", "Performance bonuses & rewards"].map((b) => (
             <View key={b} style={[styles.benefit, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}>
               <View style={[styles.benefitDot, { backgroundColor: colors.success }]} />
@@ -48,7 +48,7 @@ export default function KycApprovedScreen() {
           ))}
         </Animated.View>
       </View>
-      <Animated.View entering={FadeInUp.delay(700).duration(500)} style={[styles.footer, { paddingBottom: insets.bottom + 32 }]}>
+      <Animated.View entering={fadeInUpDelay(700)} style={[styles.footer, { paddingBottom: insets.bottom + 32 }]}>
         <Button title="Start Delivering" onPress={() => router.replace("/(tabs)/")} size="xl" variant="success" />
       </Animated.View>
     </View>

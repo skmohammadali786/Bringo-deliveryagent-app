@@ -2,11 +2,13 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInUp, ZoomIn } from "react-native-reanimated";
+import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { fadeInDownDelay, fadeInUpDelay, zoomInDelay } from "@/constants/animations";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
@@ -18,6 +20,7 @@ export default function PhotoProofScreen() {
   const { orders, updateOrderStatus } = useOrderStore();
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [permissionModal, setPermissionModal] = useState(false);
 
   const activeOrder = orders.find((o) => o.status === "delivering");
 
@@ -28,7 +31,7 @@ export default function PhotoProofScreen() {
     }
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission needed", "Camera access required to take delivery proof.");
+      setPermissionModal(true);
       return;
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
@@ -46,6 +49,16 @@ export default function PhotoProofScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={permissionModal}
+        onClose={() => setPermissionModal(false)}
+        title="Permission Needed"
+        body="Camera access is required to take delivery proof. Please enable it in your device settings."
+        confirmText="OK"
+        onConfirm={() => setPermissionModal(false)}
+        variant="warning"
+        icon="camera"
+      />
       <ScreenHeader title="Delivery Proof" showBack />
       <View style={[styles.content, { paddingBottom: insets.bottom + 100 }]}>
         {/* Instruction */}
@@ -62,7 +75,7 @@ export default function PhotoProofScreen() {
         {/* Camera / Photo Area */}
         <View style={{ flex: 1 }}>
           {photo ? (
-            <Animated.View entering={ZoomIn.duration(400)} style={[styles.photoContainer, { borderRadius: colors.radius }]}>
+            <Animated.View entering={zoomInDelay(0)} style={[styles.photoContainer, { borderRadius: colors.radius }]}>
               <Image source={{ uri: photo }} style={styles.photo} resizeMode="cover" />
               <Pressable
                 onPress={() => setPhoto(null)}
@@ -71,7 +84,7 @@ export default function PhotoProofScreen() {
                 <Feather name="refresh-cw" size={18} color="#FFF" />
                 <Text style={styles.retakeTxt}>Retake Photo</Text>
               </Pressable>
-              <Animated.View entering={FadeInUp.delay(200).duration(400)} style={[styles.successBadge, { backgroundColor: colors.success }]}>
+              <Animated.View entering={fadeInUpDelay(200)} style={[styles.successBadge, { backgroundColor: colors.success }]}>
                 <Feather name="check-circle" size={16} color="#FFF" />
                 <Text style={styles.successTxt}>Photo Captured!</Text>
               </Animated.View>

@@ -1,11 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const REFERRALS = [
   { id: "1", name: "Suresh K.", phone: "98765•••••", joined: "May 15, 2026", deliveries: 28, status: "active", earned: 500 },
@@ -34,7 +35,7 @@ export default function ReferralStatusScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Summary */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <View style={styles.summaryRow}>
             {[
               { label: "Total Referred", value: REFERRALS.length.toString(), icon: "users", color: colors.accentPurple },
@@ -53,7 +54,7 @@ export default function ReferralStatusScreen() {
         </Animated.View>
 
         {/* Requirement Info */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(80)}>
           <Card style={[styles.requireCard, { backgroundColor: colors.infoLight }]}>
             <Feather name="info" size={16} color={colors.info} />
             <Text style={[styles.requireText, { color: colors.info }]}>
@@ -63,12 +64,12 @@ export default function ReferralStatusScreen() {
         </Animated.View>
 
         {/* Referrals List */}
-        <Animated.View entering={FadeInDown.delay(140).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(140)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Your Referrals</Text>
           {REFERRALS.map((ref, i) => {
             const cfg = STATUS_CONFIG[ref.status as keyof typeof STATUS_CONFIG];
             return (
-              <Animated.View key={ref.id} entering={FadeInDown.delay(200 + i * 70).duration(400)}>
+              <Animated.View key={ref.id} entering={fadeInDownIndexed(200, i)}>
                 <Card style={styles.referralCard}>
                   {/* Top row */}
                   <View style={styles.refTop}>

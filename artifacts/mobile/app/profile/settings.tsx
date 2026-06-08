@@ -1,13 +1,15 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDown, fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const SECTIONS = [
   {
@@ -50,30 +52,32 @@ export default function SettingsScreen() {
   const { logout } = useAuthStore();
   const [locationSharing, setLocationSharing] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: () => {
-          logout();
-          router.replace("/(auth)/welcome" as any);
-        },
-      },
-    ]);
-  };
+  const handleLogout = () => setLogoutModalVisible(true);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title="Settings" showBack />
+      <ConfirmModal
+        visible={logoutModalVisible}
+        onClose={() => setLogoutModalVisible(false)}
+        title="Log Out"
+        body="Are you sure you want to log out of your account?"
+        confirmText="Log Out"
+        onConfirm={() => {
+          logout();
+          router.replace("/(auth)/welcome" as any);
+        }}
+        variant="destructive"
+        icon="log-out"
+      />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Quick Toggles */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={styles.toggleCard}>
             <View style={styles.toggleRow}>
               <View style={[styles.toggleIcon, { backgroundColor: colors.primaryLight }]}>
@@ -95,7 +99,7 @@ export default function SettingsScreen() {
 
         {/* Menu Sections */}
         {SECTIONS.map((section, si) => (
-          <Animated.View key={section.title} entering={FadeInDown.delay(60 + si * 50).duration(400)}>
+          <Animated.View key={section.title} entering={fadeInDownIndexed(60, si)}>
             <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>{section.title.toUpperCase()}</Text>
             <Card padding={0}>
               {section.items.map((item, ii) => (
@@ -123,7 +127,7 @@ export default function SettingsScreen() {
         ))}
 
         {/* Logout */}
-        <Animated.View entering={FadeInDown.delay(280).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(280)}>
           <Pressable
             onPress={handleLogout}
             style={[styles.logoutBtn, { backgroundColor: colors.destructiveLight, borderColor: colors.destructive + "30", borderRadius: colors.radiusSm }]}

@@ -3,11 +3,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Dimensions, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { useColors } from "@/hooks/useColors";
 import { useAppStore } from "@/store/appStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 type Period = "Today" | "Week" | "Month";
 
@@ -82,7 +83,7 @@ export default function EarningsScreen() {
       </View>
 
       {/* Main Earnings Card */}
-      <Animated.View entering={FadeInDown.delay(80).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(80)}>
         <LinearGradient
           colors={["#1A1A2E", "#16213E"]}
           style={[styles.mainCard, { borderRadius: colors.radius }]}
@@ -113,7 +114,7 @@ export default function EarningsScreen() {
       </Animated.View>
 
       {/* Action Buttons */}
-      <Animated.View entering={FadeInDown.delay(150).duration(500)} style={styles.actionRow}>
+      <Animated.View entering={fadeInDownDelay(150)} style={styles.actionRow}>
         <Pressable
           onPress={() => router.push("/earnings/withdraw" as any)}
           style={[styles.primaryAction, { backgroundColor: colors.primary, borderRadius: colors.radiusSm }]}
@@ -138,7 +139,7 @@ export default function EarningsScreen() {
       </Animated.View>
 
       {/* Weekly Chart */}
-      <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(200)}>
         <Card style={styles.chartCard}>
           <View style={styles.chartHeader}>
             <Text style={[styles.chartTitle, { color: colors.foreground }]}>Weekly Breakdown</Text>
@@ -178,7 +179,7 @@ export default function EarningsScreen() {
       </Animated.View>
 
       {/* Active Incentive */}
-      <Animated.View entering={FadeInDown.delay(260).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(260)}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Active Incentive</Text>
           <Pressable onPress={() => router.push("/earnings/incentives" as any)}>
@@ -213,7 +214,7 @@ export default function EarningsScreen() {
       </Animated.View>
 
       {/* Recent Transactions */}
-      <Animated.View entering={FadeInDown.delay(320).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(320)}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Transactions</Text>
         <Card padding={0}>
           {TRANSACTIONS.map((t, i) => (

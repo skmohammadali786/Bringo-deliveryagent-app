@@ -1,11 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const CATEGORIES = [
   {
@@ -68,7 +69,7 @@ export default function SafetyTipsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Hero */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.heroBanner, { backgroundColor: colors.warningLight, borderColor: colors.warning + "30" }]}>
             <Text style={styles.heroEmoji}>🛡️</Text>
             <View style={{ flex: 1 }}>
@@ -82,7 +83,7 @@ export default function SafetyTipsScreen() {
 
         {/* Categories */}
         {CATEGORIES.map((cat, ci) => (
-          <Animated.View key={cat.title} entering={FadeInDown.delay(60 + ci * 70).duration(400)}>
+          <Animated.View key={cat.title} entering={fadeInDownIndexed(60, ci)}>
             <Pressable
               onPress={() => setExpanded((e) => (e === ci ? null : ci))}
               style={[
@@ -122,7 +123,7 @@ export default function SafetyTipsScreen() {
         ))}
 
         {/* Emergency */}
-        <Animated.View entering={FadeInDown.delay(350).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(350)}>
           <Card style={[styles.emergencyCard, { backgroundColor: colors.destructiveLight, borderColor: colors.destructive + "30" }]}>
             <Feather name="phone" size={18} color={colors.destructive} />
             <View style={{ flex: 1 }}>

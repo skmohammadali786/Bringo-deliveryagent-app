@@ -1,13 +1,15 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const ISSUE_TYPES = [
   { id: "payment", label: "Payment Issue", icon: "credit-card", color: "#34C759" },
@@ -28,20 +30,19 @@ export default function IssueScreen() {
   const [priority, setPriority] = useState<typeof PRIORITIES[number]>("Medium");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [validationModal, setValidationModal] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
+  const [ticketNum] = useState(() => Math.floor(Math.random() * 90000 + 10000));
 
   const handleSubmit = async () => {
     if (!issueType || !description.trim()) {
-      Alert.alert("Fill all fields", "Please select issue type and describe the problem.");
+      setValidationModal(true);
       return;
     }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
     setLoading(false);
-    Alert.alert(
-      "Ticket Created! 🎫",
-      "Your support ticket has been created. Ticket #BRG-" + Math.floor(Math.random() * 90000 + 10000) + ". We'll respond within 24 hours.",
-      [{ text: "OK", onPress: () => router.back() }]
-    );
+    setSuccessModal(true);
   };
 
   return (
@@ -49,6 +50,28 @@ export default function IssueScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <ConfirmModal
+        visible={validationModal}
+        onClose={() => setValidationModal(false)}
+        title="Fill All Fields"
+        body="Please select an issue type and describe the problem before submitting."
+        confirmText="OK"
+        onConfirm={() => setValidationModal(false)}
+        cancelText=""
+        variant="warning"
+        icon="alert-triangle"
+      />
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => { setSuccessModal(false); router.back(); }}
+        title="Ticket Created"
+        body={`Your support ticket #BRG-${ticketNum} has been created. We'll respond within 24 hours.`}
+        confirmText="Done"
+        onConfirm={() => router.back()}
+        cancelText=""
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="Raise Issue" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
@@ -56,7 +79,7 @@ export default function IssueScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Issue Type */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Issue Type</Text>
           <View style={styles.issueGrid}>
             {ISSUE_TYPES.map((t) => (
@@ -83,7 +106,7 @@ export default function IssueScreen() {
         </Animated.View>
 
         {/* Priority */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(80)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Priority</Text>
           <View style={styles.priorityRow}>
             {PRIORITIES.map((p) => {
@@ -109,7 +132,7 @@ export default function IssueScreen() {
         </Animated.View>
 
         {/* Description */}
-        <Animated.View entering={FadeInDown.delay(160).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(160)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Describe the issue</Text>
           <Card style={styles.descCard}>
             <TextInput

@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
+import Animated, { FadeInRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnlineToggle } from "@/components/home/OnlineToggle";
 import { OrderRequestSheet } from "@/components/home/OrderRequestSheet";
@@ -23,6 +23,7 @@ import { useColors } from "@/hooks/useColors";
 import { useAppStore } from "@/store/appStore";
 import { useAuthStore } from "@/store/authStore";
 import { Order, useOrderStore } from "@/store/orderStore";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const { width } = Dimensions.get("window");
 
@@ -171,7 +172,7 @@ export default function HomeScreen() {
         }
       >
         {/* ─── Header ─── */}
-        <Animated.View entering={FadeInDown.delay(0).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDown(0)} style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={[styles.greeting, { color: colors.mutedForeground }]}>
               {getGreeting()},
@@ -192,7 +193,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ─── Online Toggle ─── */}
-        <Animated.View entering={FadeInDown.delay(80).duration(500)}>
+        <Animated.View entering={fadeInDownDelay(80)}>
           <Card style={styles.onlineCard}>
             <OnlineToggle />
             {isOnline && (
@@ -211,7 +212,7 @@ export default function HomeScreen() {
 
         {/* ─── Demo: Simulate Incoming Order ─── */}
         {!incomingOrder && (
-          <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(120)}>
             <Pressable
               onPress={handleSimulateOrder}
               style={({ pressed }) => [
@@ -241,7 +242,7 @@ export default function HomeScreen() {
         )}
 
         {/* ─── Earnings Hero ─── */}
-        <Animated.View entering={FadeInDown.delay(150).duration(500)}>
+        <Animated.View entering={fadeInDownDelay(150)}>
           <LinearGradient
             colors={["#FF6B35", "#E8501C"]}
             style={[styles.earningsHero, { borderRadius: colors.radius }]}
@@ -284,7 +285,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ─── Performance Stats (tappable shortcuts) ─── */}
-        <Animated.View entering={FadeInDown.delay(220).duration(500)} style={styles.statsRow}>
+        <Animated.View entering={fadeInDownDelay(220)} style={styles.statsRow}>
           {STAT_CONFIG.map((s, i) => {
             const color = (colors as any)[s.colorKey] as string;
             return (
@@ -312,7 +313,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ─── Quick Actions ─── */}
-        <Animated.View entering={FadeInDown.delay(290).duration(500)}>
+        <Animated.View entering={fadeInDownDelay(290)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Actions</Text>
           <View style={styles.quickGrid}>
             {QUICK_ACTIONS.map((a) => (
@@ -332,7 +333,7 @@ export default function HomeScreen() {
 
         {/* ─── Active Orders ─── */}
         {activeOrders.length > 0 && (
-          <Animated.View entering={FadeInDown.delay(360).duration(500)}>
+          <Animated.View entering={fadeInDownDelay(360)}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Active Orders</Text>
               <Badge label={`${activeOrders.length} active`} variant="primary" />
@@ -344,7 +345,7 @@ export default function HomeScreen() {
         )}
 
         {/* ─── Weekly Progress ─── */}
-        <Animated.View entering={FadeInDown.delay(420).duration(500)}>
+        <Animated.View entering={fadeInDownDelay(420)}>
           <Pressable
             onPress={() => router.push("/performance/" as any)}
             style={[styles.weeklyCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}
@@ -373,7 +374,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ─── Incentive Banner ─── */}
-        <Animated.View entering={FadeInDown.delay(480).duration(500)}>
+        <Animated.View entering={fadeInDownDelay(480)}>
           <Pressable
             onPress={() => router.push("/earnings/incentives" as any)}
             style={[styles.incentiveBanner, { backgroundColor: colors.accentLight, borderColor: colors.accent + "40", borderRadius: colors.radiusSm }]}
@@ -397,7 +398,7 @@ export default function HomeScreen() {
 
         {/* ─── Recent Deliveries ─── */}
         {recentDelivered.length > 0 && (
-          <Animated.View entering={FadeInDown.delay(540).duration(500)}>
+          <Animated.View entering={fadeInDownDelay(540)}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Deliveries</Text>
               <Pressable onPress={() => router.push("/(tabs)/orders")}>

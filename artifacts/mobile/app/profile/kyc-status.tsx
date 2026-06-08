@@ -2,13 +2,14 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const KYC_STEPS = [
   { id: "personal", label: "Personal Information", icon: "user", route: "/profile/personal" },
@@ -43,7 +44,7 @@ export default function KycStatusScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Status Banner */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.statusBanner, { backgroundColor: cfg.bg, borderColor: cfg.color + "30" }]}>
             <View style={[styles.statusIcon, { backgroundColor: cfg.color + "20" }]}>
               <Feather name={cfg.icon} size={28} color={cfg.color} />
@@ -61,7 +62,7 @@ export default function KycStatusScreen() {
         </Animated.View>
 
         {/* Progress */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Verification Steps</Text>
           <Card padding={0}>
             {KYC_STEPS.map((step, i) => {
@@ -111,7 +112,7 @@ export default function KycStatusScreen() {
 
         {/* Action */}
         {kycStatus === "rejected" && (
-          <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(120)}>
             <Card style={[styles.rejectedCard, { backgroundColor: colors.destructiveLight, borderColor: colors.destructive + "30" }]}>
               <Feather name="alert-triangle" size={18} color={colors.destructive} />
               <View style={{ flex: 1 }}>

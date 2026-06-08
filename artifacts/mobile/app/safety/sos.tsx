@@ -2,9 +2,10 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Animated as RNAnimated, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated as RNAnimated, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 
@@ -52,6 +53,8 @@ export default function SosScreen() {
     }, 1000);
   };
 
+  const [callContact, setCallContact] = useState<{ name: string; number: string } | null>(null);
+
   const cancelSos = () => {
     if (countdownRef.current) clearInterval(countdownRef.current);
     setPressing(false);
@@ -60,6 +63,16 @@ export default function SosScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={!!callContact}
+        onClose={() => setCallContact(null)}
+        title={`Call ${callContact?.name ?? ""}`}
+        body={`Dial ${callContact?.number ?? ""}`}
+        confirmText="Call"
+        onConfirm={() => { if (callContact) Linking.openURL(`tel:${callContact.number}`); }}
+        variant="info"
+        icon="phone"
+      />
       <ScreenHeader title="SOS & Safety" showBack />
       <ScrollView
         contentContainerStyle={[
@@ -106,10 +119,7 @@ export default function SosScreen() {
             <Pressable
               key={c.name}
               onPress={() => {
-                Alert.alert(`Call ${c.name}?`, `Dial ${c.number}`, [
-                  { text: "Cancel", style: "cancel" },
-                  { text: "Call", onPress: () => Linking.openURL(`tel:${c.number}`) },
-                ]);
+                setCallContact({ name: c.name, number: c.number });
               }}
               style={[styles.contactCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}
             >

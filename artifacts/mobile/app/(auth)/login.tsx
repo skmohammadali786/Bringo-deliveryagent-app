@@ -2,13 +2,14 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function LoginScreen() {
   const colors = useColors();
@@ -45,7 +46,7 @@ export default function LoginScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>
             Enter your{"\n"}mobile number
           </Text>
@@ -54,7 +55,7 @@ export default function LoginScreen() {
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.form}>
+        <Animated.View entering={fadeInDownDelay(200)} style={styles.form}>
           <Input
             label="Mobile Number"
             value={phone}
@@ -81,7 +82,7 @@ export default function LoginScreen() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.footer}>
+        <Animated.View entering={fadeInDownDelay(300)} style={styles.footer}>
           <Button
             title="Send OTP"
             onPress={handleSendOtp}

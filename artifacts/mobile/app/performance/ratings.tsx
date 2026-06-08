@@ -1,11 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const REVIEWS = [
   { id: "1", customer: "Priya S.", rating: 5, text: "Super fast delivery! Very professional.", date: "2h ago" },
@@ -50,7 +51,7 @@ export default function RatingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Summary Card */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={styles.summaryCard}>
             <View style={styles.summaryLeft}>
               <Text style={[styles.avgRating, { color: colors.foreground }]}>{avgRating}</Text>
@@ -76,7 +77,7 @@ export default function RatingsScreen() {
         </Animated.View>
 
         {/* Category Scores */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Category Scores</Text>
           <View style={styles.categoryGrid}>
             {[
@@ -95,7 +96,7 @@ export default function RatingsScreen() {
         </Animated.View>
 
         {/* Recent Reviews */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(120)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Reviews</Text>
           <Card padding={0}>
             {REVIEWS.map((r, i) => (

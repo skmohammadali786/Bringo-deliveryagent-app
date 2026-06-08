@@ -3,10 +3,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay } from "@/constants/animations";
 
 const QUICK_ACTIONS = [
   { icon: "message-circle" as const, label: "Live Chat", sub: "Chat with support", route: "/support/chat", color: "#4A90E2" },
@@ -60,7 +61,7 @@ export default function SupportScreen() {
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>Help Center</Text>
 
       {/* Hero */}
-      <Animated.View entering={FadeInDown.delay(50).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(50)}>
         <LinearGradient
           colors={["#FF6B35", "#E8501C"]}
           style={[styles.hero, { borderRadius: colors.radius }]}
@@ -78,7 +79,7 @@ export default function SupportScreen() {
       </Animated.View>
 
       {/* Quick Actions */}
-      <Animated.View entering={FadeInDown.delay(100).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(100)}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Actions</Text>
         <View style={styles.quickGrid}>
           {QUICK_ACTIONS.map((a) => (
@@ -98,7 +99,7 @@ export default function SupportScreen() {
       </Animated.View>
 
       {/* Order Dispute CTA */}
-      <Animated.View entering={FadeInDown.delay(150).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(150)}>
         <Pressable
           onPress={() => router.push("/support/order-dispute" as any)}
           style={[styles.disputeCard, { backgroundColor: colors.warningLight, borderColor: colors.warning + "30", borderRadius: colors.radiusSm }]}
@@ -117,7 +118,7 @@ export default function SupportScreen() {
       </Animated.View>
 
       {/* FAQs */}
-      <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(200)}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Frequently Asked</Text>
           <Pressable onPress={() => router.push("/support/faq" as any)}>
@@ -164,7 +165,7 @@ export default function SupportScreen() {
       </Animated.View>
 
       {/* Hours */}
-      <Animated.View entering={FadeInDown.delay(250).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(250)}>
         <Card style={styles.hoursCard}>
           <Feather name="clock" size={18} color={colors.primary} />
           <View>

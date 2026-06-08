@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function KycReviewScreen() {
   const colors = useColors();
@@ -49,7 +50,7 @@ export default function KycReviewScreen() {
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.timeline}>
+        <Animated.View entering={fadeInDownDelay(300)} style={styles.timeline}>
           {[
             { icon: "check-circle", label: "Application Submitted", done: true },
             { icon: "loader", label: "Document Verification", active: true },
@@ -70,7 +71,7 @@ export default function KycReviewScreen() {
           ))}
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(500).duration(500)} style={[styles.infoBox, { backgroundColor: colors.primaryLight, borderRadius: colors.radius }]}>
+        <Animated.View entering={fadeInDownDelay(500)} style={[styles.infoBox, { backgroundColor: colors.primaryLight, borderRadius: colors.radius }]}>
           <Feather name="bell" size={16} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.primary }]}>
             You'll receive an SMS and app notification once your KYC is approved

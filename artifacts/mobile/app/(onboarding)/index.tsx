@@ -2,10 +2,11 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const STEPS = [
   { icon: "user", label: "Personal Info", desc: "Basic details & photo" },
@@ -22,7 +23,7 @@ export default function AgentIntroScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.content, { paddingTop: insets.top + (Platform.OS === "web" ? 60 : 60) }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>
             Complete Your{"\n"}Agent Profile
           </Text>
@@ -35,7 +36,7 @@ export default function AgentIntroScreen() {
           {STEPS.map((step, i) => (
             <Animated.View
               key={step.label}
-              entering={FadeInDown.delay(200 + i * 100).duration(500)}
+              entering={fadeInDownIndexed(200, i)}
               style={[
                 styles.stepCard,
                 { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm },
@@ -54,7 +55,7 @@ export default function AgentIntroScreen() {
         </View>
 
         <Animated.View
-          entering={FadeInDown.delay(700).duration(500)}
+          entering={fadeInDownDelay(700)}
           style={[styles.infoBox, { backgroundColor: colors.accentLight, borderRadius: colors.radiusSm }]}
         >
           <Feather name="zap" size={16} color={colors.accent} />
@@ -65,7 +66,7 @@ export default function AgentIntroScreen() {
       </View>
 
       <Animated.View
-        entering={FadeInDown.delay(800).duration(500)}
+        entering={fadeInDownDelay(800)}
         style={[styles.footer, { paddingBottom: insets.bottom + 32 }]}
       >
         <Button

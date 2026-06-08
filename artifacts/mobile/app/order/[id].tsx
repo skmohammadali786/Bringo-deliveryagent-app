@@ -2,14 +2,16 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const STATUS_GRADIENTS: Record<string, string[]> = {
   new: ["#FF9A3D", "#FF6B35"],
@@ -32,6 +34,7 @@ export default function OrderDetailScreen() {
   const { getOrder, acceptOrder, rejectOrder, updateOrderStatus } = useOrderStore();
   const order = getOrder(id ?? "");
   const [loading, setLoading] = useState(false);
+  const [rejectModalVisible, setRejectModalVisible] = useState(false);
 
   if (!order) {
     return (
@@ -53,12 +56,7 @@ export default function OrderDetailScreen() {
     router.push(`/shop/${order.shop.id}` as any);
   };
 
-  const handleReject = () => {
-    Alert.alert("Reject Order", "Are you sure you want to reject this order?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Reject", style: "destructive", onPress: () => { rejectOrder(order.id); router.back(); } },
-    ]);
-  };
+  const handleReject = () => setRejectModalVisible(true);
 
   const getNextAction = () => {
     switch (order.status) {
@@ -77,6 +75,16 @@ export default function OrderDetailScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={rejectModalVisible}
+        onClose={() => setRejectModalVisible(false)}
+        title="Reject Order"
+        body="Are you sure you want to reject this order? This action cannot be undone."
+        confirmText="Reject"
+        onConfirm={() => { rejectOrder(order.id); router.back(); }}
+        variant="destructive"
+        icon="x-circle"
+      />
       <ScreenHeader
         title={`Order ${order.orderNumber}`}
         showBack
@@ -98,7 +106,7 @@ export default function OrderDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Status Banner */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <LinearGradient
             colors={gradientColors as any}
             style={[styles.statusBanner, { borderRadius: colors.radiusSm }]}
@@ -120,7 +128,7 @@ export default function OrderDetailScreen() {
 
         {/* Progress Steps */}
         {!["delivered", "cancelled", "failed"].includes(order.status) && (
-          <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(60)}>
             <Card style={styles.stepsCard}>
               <View style={styles.stepsRow}>
                 {["Request", "Shop", "Pickup", "Delivery"].map((step, i) => {
@@ -156,7 +164,7 @@ export default function OrderDetailScreen() {
         )}
 
         {/* Earnings Card */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(100)}>
           <Card style={[styles.earningsCard, { backgroundColor: colors.successLight, borderColor: colors.success + "30" }]}>
             <View style={styles.earningsLeft}>
               <Feather name="trending-up" size={20} color={colors.success} />
@@ -180,7 +188,7 @@ export default function OrderDetailScreen() {
         </Animated.View>
 
         {/* Pickup */}
-        <Animated.View entering={FadeInDown.delay(140).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(140)}>
           <Card>
             <Text style={[styles.cardSection, { color: colors.mutedForeground }]}>PICKUP FROM</Text>
             <Text style={[styles.shopName, { color: colors.foreground }]}>{order.shop.name}</Text>
@@ -208,7 +216,7 @@ export default function OrderDetailScreen() {
         </Animated.View>
 
         {/* Order Items */}
-        <Animated.View entering={FadeInDown.delay(180).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(180)}>
           <Card>
             <Text style={[styles.cardSection, { color: colors.mutedForeground }]}>
               ORDER ITEMS ({order.items.length})
@@ -241,7 +249,7 @@ export default function OrderDetailScreen() {
         </Animated.View>
 
         {/* Deliver To */}
-        <Animated.View entering={FadeInDown.delay(220).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(220)}>
           <Card>
             <Text style={[styles.cardSection, { color: colors.mutedForeground }]}>DELIVER TO</Text>
             <Text style={[styles.customerName, { color: colors.foreground }]}>{order.customer.name}</Text>
@@ -277,7 +285,7 @@ export default function OrderDetailScreen() {
 
         {/* Instructions */}
         {order.instructions && (
-          <Animated.View entering={FadeInDown.delay(260).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(260)}>
             <Card style={[styles.instructionsCard, { backgroundColor: colors.accentLight, borderColor: colors.accent + "30" }]}>
               <Feather name="message-circle" size={18} color={colors.accent} />
               <View style={{ flex: 1 }}>

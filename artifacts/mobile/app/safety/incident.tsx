@@ -1,13 +1,15 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const INCIDENT_TYPES = [
   { id: "harassment", label: "Harassment", icon: "user-x", color: "#FF4D4F" },
@@ -25,20 +27,18 @@ export default function IncidentScreen() {
   const [selected, setSelected] = useState<string>("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [validationModal, setValidationModal] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   const handleSubmit = async () => {
     if (!selected || !description.trim()) {
-      Alert.alert("Missing Info", "Please select incident type and describe what happened.");
+      setValidationModal(true);
       return;
     }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
     setLoading(false);
-    Alert.alert(
-      "Incident Reported",
-      "Your incident report has been submitted. Our safety team will contact you within 30 minutes.",
-      [{ text: "OK", onPress: () => router.back() }]
-    );
+    setSuccessModal(true);
   };
 
   return (
@@ -46,6 +46,26 @@ export default function IncidentScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <ConfirmModal
+        visible={validationModal}
+        onClose={() => setValidationModal(false)}
+        title="Missing Info"
+        body="Please select an incident type and describe what happened."
+        confirmText="OK"
+        onConfirm={() => setValidationModal(false)}
+        variant="warning"
+        icon="alert-triangle"
+      />
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => setSuccessModal(false)}
+        title="Incident Reported"
+        body="Your incident report has been submitted. Our safety team will contact you within 30 minutes."
+        confirmText="OK"
+        onConfirm={() => router.back()}
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="Report Incident" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
@@ -53,7 +73,7 @@ export default function IncidentScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Banner */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.banner, { backgroundColor: colors.destructiveLight, borderColor: colors.destructive + "30" }]}>
             <Feather name="alert-circle" size={22} color={colors.destructive} />
             <Text style={[styles.bannerText, { color: colors.foreground }]}>
@@ -63,7 +83,7 @@ export default function IncidentScreen() {
         </Animated.View>
 
         {/* Incident Type */}
-        <Animated.View entering={FadeInDown.delay(60).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(60)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Incident Type</Text>
           <View style={styles.typeGrid}>
             {INCIDENT_TYPES.map((t) => (
@@ -95,7 +115,7 @@ export default function IncidentScreen() {
         </Animated.View>
 
         {/* Description */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(120)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Describe what happened</Text>
           <Card style={styles.descCard}>
             <TextInput
@@ -112,7 +132,7 @@ export default function IncidentScreen() {
         </Animated.View>
 
         {/* Attachments */}
-        <Animated.View entering={FadeInDown.delay(180).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(180)}>
           <Card style={styles.attachCard}>
             <Feather name="camera" size={18} color={colors.primary} />
             <View style={{ flex: 1 }}>

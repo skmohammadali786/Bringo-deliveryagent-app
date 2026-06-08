@@ -1,12 +1,14 @@
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
 
@@ -18,6 +20,8 @@ export default function ShopScreen() {
   const { orders, updateOrderStatus } = useOrderStore();
   const [itemStatus, setItemStatus] = useState<Record<string, "available" | "unavailable" | "substituted">>({});
   const [loading, setLoading] = useState(false);
+  const [unavailableModal, setUnavailableModal] = useState(false);
+  const [unavailableCount, setUnavailableCount] = useState(0);
 
   const order = orders.find((o) => o.shop.id === id && ["accepted", "at_shop"].includes(o.status));
 
@@ -29,14 +33,8 @@ export default function ShopScreen() {
     if (!order) return;
     const unavailable = Object.values(itemStatus).filter((s) => s === "unavailable").length;
     if (unavailable > 0) {
-      Alert.alert(
-        "Unavailable Items",
-        `${unavailable} item(s) are marked as unavailable. Would you like to suggest alternatives?`,
-        [
-          { text: "Skip", onPress: () => proceedPickup() },
-          { text: "Suggest Alternatives", onPress: () => router.push("/shop/suggested" as any) },
-        ]
-      );
+      setUnavailableCount(unavailable);
+      setUnavailableModal(true);
     } else {
       proceedPickup();
     }
@@ -69,6 +67,18 @@ export default function ShopScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={unavailableModal}
+        onClose={() => setUnavailableModal(false)}
+        title="Unavailable Items"
+        body={`${unavailableCount} item(s) are marked as unavailable. Would you like to suggest alternatives?`}
+        confirmText="Suggest Alternatives"
+        cancelText="Skip"
+        onConfirm={() => router.push("/shop/suggested" as any)}
+        onCancel={() => proceedPickup()}
+        variant="warning"
+        icon="alert-triangle"
+      />
       <ScreenHeader
         title={order.shop.name}
         showBack
@@ -90,7 +100,7 @@ export default function ShopScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Shop Info */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={styles.shopCard}>
             <View style={styles.shopHeader}>
               <View style={[styles.shopIcon, { backgroundColor: colors.primaryLight }]}>
@@ -133,7 +143,7 @@ export default function ShopScreen() {
         </Animated.View>
 
         {/* Shop Map */}
-        <Animated.View entering={FadeInDown.delay(40).duration(400)}>
+        <Animated.View entering={fadeInDown(1)}>
           <Card style={styles.shopMapCard}>
             <View style={[styles.mapMockup, { backgroundColor: colors.muted, borderRadius: 12 }]}>
               {/* Simulated map grid */}
@@ -183,13 +193,8 @@ export default function ShopScreen() {
         </Animated.View>
 
         {/* Progress */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
-          <View
-            style={[
-              styles.progressCard,
-              { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm },
-            ]}
-          >
+        <Animated.View entering={fadeInDown(2)}>
+          <View style={[styles.progressCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}>
             <View style={[styles.progressBar, { backgroundColor: colors.muted }]}>
               <View
                 style={[
@@ -211,8 +216,10 @@ export default function ShopScreen() {
         </Animated.View>
 
         {/* Items */}
-        <Animated.View entering={FadeInDown.delay(120).duration(400)}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Collect These Items</Text>
+        <Animated.View entering={fadeInDown(3)}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+            Collect These Items
+          </Text>
           <Card padding={0}>
             {order.items.map((item, i) => {
               const status = itemStatus[item.id];
@@ -282,7 +289,7 @@ export default function ShopScreen() {
         </Animated.View>
 
         {/* Actions */}
-        <Animated.View entering={FadeInDown.delay(160).duration(400)} style={styles.quickActions}>
+        <Animated.View entering={fadeInDown(4)} style={styles.quickActions}>
           <Pressable
             onPress={() => router.push("/product/photo" as any)}
             style={[styles.qaBtn, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: 14 }]}

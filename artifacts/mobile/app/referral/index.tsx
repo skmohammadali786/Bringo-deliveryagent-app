@@ -3,11 +3,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay } from "@/constants/animations";
 
 const REFERRED_AGENTS = [
   { name: "Suresh K.", status: "active", earnings: "₹500 earned", date: "May 15" },
@@ -43,7 +44,7 @@ export default function ReferralScreen() {
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>Refer & Earn</Text>
 
       {/* Hero */}
-      <Animated.View entering={FadeInDown.delay(50).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(50)}>
         <LinearGradient
           colors={["#7C5CFF", "#5C3CDF"]}
           style={[styles.hero, { borderRadius: colors.radius }]}
@@ -69,7 +70,7 @@ export default function ReferralScreen() {
       </Animated.View>
 
       {/* Referral Code */}
-      <Animated.View entering={FadeInDown.delay(100).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(100)}>
         <Card style={styles.codeCard}>
           <Text style={[styles.codeLabel, { color: colors.mutedForeground }]}>YOUR REFERRAL CODE</Text>
           <View style={[styles.codeBox, { backgroundColor: colors.muted, borderRadius: 14 }]}>
@@ -91,7 +92,7 @@ export default function ReferralScreen() {
       </Animated.View>
 
       {/* How it works */}
-      <Animated.View entering={FadeInDown.delay(150).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(150)}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>How it Works</Text>
         <View style={styles.stepsCol}>
           {[
@@ -113,7 +114,7 @@ export default function ReferralScreen() {
       </Animated.View>
 
       {/* Referred Agents */}
-      <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(200)}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Your Referrals</Text>
           <Pressable onPress={() => router.push("/referral/status" as any)}>

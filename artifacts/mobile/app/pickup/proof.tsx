@@ -2,14 +2,16 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown, FadeInUp, ZoomIn } from "react-native-reanimated";
+import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDown, fadeInDownDelay, fadeInUpDelay, zoomInDelay } from "@/constants/animations";
 
 export default function PickupProofScreen() {
   const colors = useColors();
@@ -18,6 +20,7 @@ export default function PickupProofScreen() {
   const { orders, updateOrderStatus } = useOrderStore();
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [permissionModal, setPermissionModal] = useState(false);
 
   const activeOrder = orders.find((o) => ["at_shop", "accepted"].includes(o.status));
 
@@ -28,7 +31,7 @@ export default function PickupProofScreen() {
     }
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission required", "Camera access is needed to take pickup proof.");
+      setPermissionModal(true);
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -49,10 +52,20 @@ export default function PickupProofScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={permissionModal}
+        onClose={() => setPermissionModal(false)}
+        title="Permission Required"
+        body="Camera access is needed to take pickup proof. Please enable it in your device settings."
+        confirmText="OK"
+        onConfirm={() => setPermissionModal(false)}
+        variant="warning"
+        icon="camera"
+      />
       <ScreenHeader title="Pickup Proof" showBack />
       <View style={[styles.content, { paddingBottom: insets.bottom + 100 }]}>
         {/* Info */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.infoCard, { backgroundColor: colors.primaryLight }]}>
             <Feather name="camera" size={20} color={colors.primary} />
             <Text style={[styles.infoText, { color: colors.foreground }]}>
@@ -62,9 +75,9 @@ export default function PickupProofScreen() {
         </Animated.View>
 
         {/* Camera Area */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)} style={{ flex: 1 }}>
+        <Animated.View entering={fadeInDownDelay(80)} style={{ flex: 1 }}>
           {photo ? (
-            <Animated.View entering={ZoomIn.duration(400)} style={styles.photoWrap}>
+            <Animated.View entering={zoomInDelay(0)} style={styles.photoWrap}>
               <Image source={{ uri: photo }} style={styles.photo} resizeMode="cover" />
               <View style={[styles.photoOverlay, { borderRadius: colors.radius }]}>
                 <Pressable
@@ -75,7 +88,7 @@ export default function PickupProofScreen() {
                   <Text style={styles.retakeTxt}>Retake</Text>
                 </Pressable>
               </View>
-              <Animated.View entering={FadeInUp.delay(200).duration(400)} style={[styles.successBanner, { backgroundColor: colors.success }]}>
+              <Animated.View entering={fadeInUpDelay(200)} style={[styles.successBanner, { backgroundColor: colors.success }]}>
                 <Feather name="check-circle" size={18} color="#FFF" />
                 <Text style={styles.successText}>Photo captured!</Text>
               </Animated.View>

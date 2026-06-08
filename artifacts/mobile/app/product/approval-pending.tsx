@@ -12,6 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function ApprovalPendingScreen() {
   const colors = useColors();
@@ -30,7 +31,7 @@ export default function ApprovalPendingScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.content, { paddingTop: insets.top + (Platform.OS === "web" ? 80 : 80) }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.center}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.center}>
           <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
             <Animated.View style={spinStyle}>
               <Feather name="loader" size={48} color={colors.primary} />
@@ -41,7 +42,7 @@ export default function ApprovalPendingScreen() {
             Order details sent to customer. Waiting for their confirmation before pickup.
           </Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.statusCard}>
+        <Animated.View entering={fadeInDownDelay(300)} style={styles.statusCard}>
           {[
             { label: "Order details sent", done: true },
             { label: "Customer reviewing", active: true },

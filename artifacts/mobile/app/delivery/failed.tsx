@@ -2,13 +2,14 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const FAILURE_REASONS = [
   { id: "not_home", label: "Customer not at home", icon: "home" },
@@ -49,7 +50,7 @@ export default function DeliveryFailedScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Warning Banner */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.warnCard, { backgroundColor: colors.destructiveLight, borderColor: colors.destructive + "30" }]}>
             <View style={[styles.warnIcon, { backgroundColor: colors.destructive + "18" }]}>
               <Feather name="alert-circle" size={28} color={colors.destructive} />
@@ -64,7 +65,7 @@ export default function DeliveryFailedScreen() {
         </Animated.View>
 
         {/* Reason Selection */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(80)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Reason for failure</Text>
           {FAILURE_REASONS.map((reason, i) => (
             <Pressable
@@ -94,7 +95,7 @@ export default function DeliveryFailedScreen() {
         </Animated.View>
 
         {/* Tip */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(200)}>
           <Card style={[styles.tipCard, { backgroundColor: colors.infoLight }]}>
             <Feather name="info" size={16} color={colors.info} />
             <Text style={[styles.tipText, { color: colors.info }]}>

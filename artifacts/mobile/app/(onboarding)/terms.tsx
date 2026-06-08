@@ -2,12 +2,13 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/authStore";
+import { fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const TERMS = [
   "I agree to deliver orders within the committed time frame",
@@ -43,13 +44,13 @@ export default function TermsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title="Terms & Conditions" showBack />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 20 : 0 }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Accept Terms</Text>
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>Please read and accept all terms before submitting your application</Text>
         </Animated.View>
         <View style={styles.terms}>
           {TERMS.map((term, i) => (
-            <Animated.View key={i} entering={FadeInDown.delay(200 + i * 60).duration(400)}>
+            <Animated.View key={i} entering={fadeInDownIndexed(200, i)}>
               <Pressable onPress={() => toggle(i)} style={[styles.termRow, { backgroundColor: colors.card, borderColor: accepted.has(i) ? colors.success : colors.border, borderRadius: colors.radiusSm }]}>
                 <View style={[styles.checkbox, { backgroundColor: accepted.has(i) ? colors.success : "transparent", borderColor: accepted.has(i) ? colors.success : colors.border }]}>
                   {accepted.has(i) && <Feather name="check" size={13} color="#FFF" />}

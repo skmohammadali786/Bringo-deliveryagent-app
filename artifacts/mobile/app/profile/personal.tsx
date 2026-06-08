@@ -1,10 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Input } from "@/components/ui/Input";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
@@ -20,14 +21,13 @@ export default function PersonalScreen() {
   const [phone, setPhone] = useState(agent?.phone ?? "9876543210");
   const [emergency, setEmergency] = useState("9123456789");
   const [loading, setLoading] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   const handleSave = async () => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 900));
     setLoading(false);
-    Alert.alert("Saved", "Personal details updated successfully.", [
-      { text: "OK", onPress: () => router.back() },
-    ]);
+    setSuccessModal(true);
   };
 
   return (
@@ -35,6 +35,16 @@ export default function PersonalScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => setSuccessModal(false)}
+        title="Saved"
+        body="Personal details updated successfully."
+        confirmText="OK"
+        onConfirm={() => router.back()}
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="Personal Details" showBack />
       <ScrollView
         contentContainerStyle={[

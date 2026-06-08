@@ -2,13 +2,14 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDown, fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const STEPS = [
   {
@@ -62,7 +63,7 @@ export default function PickupInstructionsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header Banner */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={[styles.heroBanner, { backgroundColor: colors.primaryLight, borderColor: colors.primary + "30" }]}>
             <View style={[styles.heroIcon, { backgroundColor: colors.primary }]}>
               <Feather name="package" size={28} color="#FFF" />
@@ -78,7 +79,7 @@ export default function PickupInstructionsScreen() {
 
         {/* Steps */}
         {STEPS.map((step, i) => (
-          <Animated.View key={step.step} entering={FadeInDown.delay(60 + i * 80).duration(400)}>
+          <Animated.View key={step.step} entering={fadeInDownIndexed(60, i)}>
             <View style={styles.stepRow}>
               <View style={styles.stepLeft}>
                 <View style={[styles.stepCircle, { backgroundColor: step.color }]}>
@@ -102,7 +103,7 @@ export default function PickupInstructionsScreen() {
         ))}
 
         {/* Safety Tips */}
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(400)}>
           <Card style={[styles.safetyCard, { backgroundColor: colors.warningLight, borderColor: colors.warning + "30" }]}>
             <Feather name="shield" size={18} color={colors.warning} />
             <View style={styles.safetyText}>
@@ -116,7 +117,7 @@ export default function PickupInstructionsScreen() {
 
         {/* Order Details */}
         {activeOrder && (
-          <Animated.View entering={FadeInDown.delay(480).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(480)}>
             <Card style={styles.orderCard}>
               <Text style={[styles.orderLabel, { color: colors.mutedForeground }]}>ACTIVE ORDER</Text>
               <Text style={[styles.orderNum, { color: colors.foreground }]}>{activeOrder.orderNumber}</Text>

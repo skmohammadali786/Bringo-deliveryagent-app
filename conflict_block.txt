@@ -1,0 +1,171 @@
+   235	      >
+   236	        {viewMode === "orders" && activeOrder ? (
+   237	          /* Order detail tiles */
+   238	          <>
+   239	            <View style={styles.contentHeader}>
+   240	              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Order #{activeOrder.id}</Text>
+   241	              <View style={[styles.updatedBadge, { backgroundColor: colors.primaryLight }]}>
+   242	                <View style={[styles.updatedDot, { backgroundColor: colors.primary }]} />
+   243	                <Text style={[styles.updatedText, { color: colors.primary }]}>In Progress</Text>
+   244	              </View>
+   245	            </View>
+   246	
+   247	<<<<<<< HEAD
+   248	            {[
+   249	              { label: "Items",      value: `${activeOrder.items.length} items`,      icon: "package"  },
+   250	              { label: "Customer",   value: activeOrder.customer.name,                icon: "user"     },
+   251	              { label: "Value",      value: `₹${activeOrder.totalAmount ?? activeOrder.items.reduce((s, i) => s + i.price * i.quantity, 0)}`, icon: "dollar-sign" },
+   252	              { label: "ETA",        value: "~12 min",                                icon: "clock"    },
+   253	            ].map((tile, i) => (
+   254	              <Animated.View key={tile.label} entering={FadeInDown.delay(i * 60).duration(400)}>
+   255	                <Card style={styles.orderTile}>
+   256	                  <View style={[styles.orderTileIcon, { backgroundColor: colors.primaryLight }]}>
+   257	                    <Feather name={tile.icon as any} size={18} color={colors.primary} />
+   258	                  </View>
+   259	                  <View style={styles.orderTileInfo}>
+   260	                    <Text style={[styles.orderTileLabel, { color: colors.mutedForeground }]}>{tile.label}</Text>
+   261	                    <Text style={[styles.orderTileValue, { color: colors.foreground }]} numberOfLines={1}>{tile.value}</Text>
+   262	                  </View>
+   263	                </Card>
+   264	              </Animated.View>
+   265	            ))}
+   266	
+   267	            <Pressable
+   268	              onPress={() => router.push("/delivery/navigate" as any)}
+   269	              style={[styles.navigateBtn, { backgroundColor: colors.primary, borderRadius: 16 }]}
+   270	            >
+   271	              <Feather name="navigation" size={18} color="#FFF" />
+   272	              <Text style={styles.navigateBtnText}>Open Navigation</Text>
+   273	            </Pressable>
+   274	          </>
+   275	        ) : (
+   276	          /* Heatmap / hotspots list */
+   277	          <>
+   278	            <View style={styles.contentHeader}>
+   279	              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Top Hotspots</Text>
+   280	              <View style={[styles.updatedBadge, { backgroundColor: colors.successLight }]}>
+   281	                <View style={[styles.updatedDot, { backgroundColor: colors.success }]} />
+   282	                <Text style={[styles.updatedText, { color: colors.success }]}>Live</Text>
+   283	=======
+   284	        {HOTSPOTS.map((spot, i) => (
+   285	          <Animated.View key={spot.id} entering={FadeInDown.delay(i * 60).duration(350)}>
+   286	            <Card style={styles.hotspotCard}>
+   287	              <View style={[styles.surgeTag, { backgroundColor: spot.surge >= "2.0×" ? "#FF4D4F18" : colors.primaryLight }]}>
+   288	                <Text style={[styles.surgeVal, { color: spot.surge >= "2.0×" ? "#FF4D4F" : colors.primary }]}>
+   289	                  {spot.surge}
+   290	                </Text>
+   291	              </View>
+   292	              <View style={styles.hotspotInfo}>
+   293	                <Text style={[styles.hotspotName, { color: colors.foreground }]}>{spot.name}</Text>
+   294	                <View style={styles.hotspotMeta}>
+   295	                  <Feather name="package" size={12} color={colors.mutedForeground} />
+   296	                  <Text style={[styles.hotspotMetaText, { color: colors.mutedForeground }]}>
+   297	                    {spot.orders} orders
+   298	                  </Text>
+   299	                  <Text style={[styles.dot, { color: colors.border }]}>·</Text>
+   300	                  <Feather name="navigation" size={12} color={colors.mutedForeground} />
+   301	                  <Text style={[styles.hotspotMetaText, { color: colors.mutedForeground }]}>
+   302	                    {spot.distance}
+   303	                  </Text>
+   304	                </View>
+   305	              </View>
+   306	              <View style={styles.hotspotRight}>
+   307	                <Text style={[styles.hotspotEarning, { color: colors.success }]}>{spot.earnings}</Text>
+   308	                <Pressable
+   309	                  onPress={() => router.push("/delivery/navigate" as any)}
+   310	                  style={[styles.goBtn, { backgroundColor: colors.primary, borderRadius: 10 }]}
+   311	                >
+   312	                  <Feather name="navigation" size={14} color="#FFF" />
+   313	                </Pressable>
+   314	              </View>
+   315	            </Card>
+   316	          </Animated.View>
+   317	        ))}
+   318	
+   319	        {/* Nearby Shops */}
+   320	        <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 8 }]}>Nearby Active Shops</Text>
+   321	        {[
+   322	          { name: "Green Mart", type: "Grocery", orders: 8, wait: "~5 min", color: "#34C759" },
+   323	          { name: "Quick Bites", type: "Restaurant", orders: 15, wait: "~12 min", color: "#FF6B35" },
+   324	          { name: "MedPlus", type: "Pharmacy", orders: 3, wait: "~3 min", color: "#4A90E2" },
+   325	        ].map((shop, i) => (
+   326	          <Animated.View key={shop.name} entering={FadeInDown.delay(300 + i * 60).duration(350)}>
+   327	            <Card style={styles.shopCard}>
+   328	              <View style={[styles.shopDot, { backgroundColor: shop.color + "20" }]}>
+   329	                <MaterialCommunityIcons
+   330	                  name={shop.type === "Restaurant" ? "food" : shop.type === "Pharmacy" ? "pill" : "shopping"}
+   331	                  size={18}
+   332	                  color={shop.color}
+   333	                />
+   334	>>>>>>> 872fabd (UI polish: ConfirmModal, animation standards, Alert.alert elimination)
+   335	              </View>
+   336	            </View>
+   337	
+   338	            {HOTSPOTS.map((spot, i) => (
+   339	              <Animated.View key={spot.id} entering={FadeInDown.delay(i * 70).duration(400)}>
+   340	                <Card style={styles.hotspotCard}>
+   341	                  <View style={[styles.surgeTag, { backgroundColor: spot.surge >= "2.0×" ? "#FF4D4F18" : colors.primaryLight }]}>
+   342	                    <Text style={[styles.surgeVal, { color: spot.surge >= "2.0×" ? "#FF4D4F" : colors.primary }]}>
+   343	                      {spot.surge}
+   344	                    </Text>
+   345	                  </View>
+   346	                  <View style={styles.hotspotInfo}>
+   347	                    <Text style={[styles.hotspotName, { color: colors.foreground }]}>{spot.name}</Text>
+   348	                    <View style={styles.hotspotMeta}>
+   349	                      <Feather name="package" size={12} color={colors.mutedForeground} />
+   350	                      <Text style={[styles.hotspotMetaText, { color: colors.mutedForeground }]}>
+   351	                        {spot.orders} orders
+   352	                      </Text>
+   353	                      <Text style={[styles.dot, { color: colors.border }]}>·</Text>
+   354	                      <Feather name="navigation" size={12} color={colors.mutedForeground} />
+   355	                      <Text style={[styles.hotspotMetaText, { color: colors.mutedForeground }]}>
+   356	                        {spot.distance}
+   357	                      </Text>
+   358	                    </View>
+   359	                  </View>
+   360	                  <View style={styles.hotspotRight}>
+   361	                    <Text style={[styles.hotspotEarning, { color: colors.success }]}>{spot.earnings}</Text>
+   362	                    <Pressable
+   363	                      onPress={() => router.push("/delivery/navigate" as any)}
+   364	                      style={[styles.goBtn, { backgroundColor: colors.primary, borderRadius: 10 }]}
+   365	                    >
+   366	                      <Feather name="navigation" size={14} color="#FFF" />
+   367	                    </Pressable>
+   368	                  </View>
+   369	                </Card>
+   370	              </Animated.View>
+   371	            ))}
+   372	
+   373	            <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 8 }]}>Nearby Active Shops</Text>
+   374	            {[
+   375	              { name: "Green Mart",  type: "Grocery",    orders: 8,  wait: "~5 min",  color: "#34C759" },
+   376	              { name: "Quick Bites", type: "Restaurant", orders: 15, wait: "~12 min", color: "#FF6B35" },
+   377	              { name: "MedPlus",     type: "Pharmacy",   orders: 3,  wait: "~3 min",  color: "#4A90E2" },
+   378	            ].map((shop, i) => (
+   379	              <Animated.View key={shop.name} entering={FadeInDown.delay(300 + i * 70).duration(400)}>
+   380	                <Card style={styles.shopCard}>
+   381	                  <View style={[styles.shopDot, { backgroundColor: shop.color + "20" }]}>
+   382	                    <MaterialCommunityIcons
+   383	                      name={shop.type === "Restaurant" ? "food" : shop.type === "Pharmacy" ? "pill" : "shopping"}
+   384	                      size={18}
+   385	                      color={shop.color}
+   386	                    />
+   387	                  </View>
+   388	                  <View style={styles.shopInfo}>
+   389	                    <Text style={[styles.shopName, { color: colors.foreground }]}>{shop.name}</Text>
+   390	                    <Text style={[styles.shopType, { color: colors.mutedForeground }]}>{shop.type} · {shop.orders} active</Text>
+   391	                  </View>
+   392	                  <View style={[styles.waitBadge, { backgroundColor: colors.muted }]}>
+   393	                    <Feather name="clock" size={12} color={colors.mutedForeground} />
+   394	                    <Text style={[styles.waitText, { color: colors.mutedForeground }]}>{shop.wait}</Text>
+   395	                  </View>
+   396	                </Card>
+   397	              </Animated.View>
+   398	            ))}
+   399	          </>
+   400	        )}
+   401	      </ScrollView>
+   402	    </View>
+   403	  );
+   404	}
+   405	

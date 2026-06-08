@@ -2,13 +2,14 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OrderCard } from "@/components/order/OrderCard";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 export default function OrderQueueScreen() {
   const colors = useColors();
@@ -28,7 +29,7 @@ export default function OrderQueueScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Stats */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <View style={styles.statsRow}>
             {[
               { label: "New Requests", value: newOrders.length, color: colors.warning, icon: "bell" },
@@ -48,7 +49,7 @@ export default function OrderQueueScreen() {
 
         {/* New Requests */}
         {newOrders.length > 0 && (
-          <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(80)}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionLeft}>
                 <View style={[styles.sectionDot, { backgroundColor: colors.warning }]} />
@@ -66,7 +67,7 @@ export default function OrderQueueScreen() {
 
         {/* In Progress */}
         {inProgress.length > 0 && (
-          <Animated.View entering={FadeInDown.delay(160).duration(400)}>
+          <Animated.View entering={fadeInDownDelay(160)}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionLeft}>
                 <View style={[styles.sectionDot, { backgroundColor: colors.primary }]} />
@@ -84,7 +85,7 @@ export default function OrderQueueScreen() {
 
         {/* Empty State */}
         {activeOrders.length === 0 && (
-          <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.emptyState}>
+          <Animated.View entering={fadeInDownDelay(100)} style={styles.emptyState}>
             <View style={[styles.emptyIcon, { backgroundColor: colors.muted }]}>
               <Feather name="inbox" size={40} color={colors.mutedForeground} />
             </View>

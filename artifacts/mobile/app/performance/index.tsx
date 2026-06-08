@@ -3,11 +3,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { useColors } from "@/hooks/useColors";
 import { useAppStore } from "@/store/appStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 const PERF_MENU = [
   { icon: "star" as const, label: "Ratings & Reviews", sub: "Customer feedback", route: "/performance/ratings", color: "#FFB800" },
@@ -35,7 +36,7 @@ export default function PerformanceScreen() {
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>Performance</Text>
 
       {/* Score Card */}
-      <Animated.View entering={FadeInDown.delay(50).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(50)}>
         <LinearGradient
           colors={["#1A1A2E", "#16213E"]}
           style={[styles.scoreCard, { borderRadius: colors.radius }]}
@@ -66,7 +67,7 @@ export default function PerformanceScreen() {
       </Animated.View>
 
       {/* Menu */}
-      <Animated.View entering={FadeInDown.delay(120).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(120)}>
         <Card padding={0}>
           {PERF_MENU.map((item, i) => (
             <Pressable
@@ -95,7 +96,7 @@ export default function PerformanceScreen() {
       </Animated.View>
 
       {/* Tips */}
-      <Animated.View entering={FadeInDown.delay(180).duration(500)}>
+      <Animated.View entering={fadeInDownDelay(180)}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Improve Your Score</Text>
         <View style={styles.tipsGrid}>
           {[

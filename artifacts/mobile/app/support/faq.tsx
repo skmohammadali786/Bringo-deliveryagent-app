@@ -1,11 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown } from "@/constants/animations";
 
 const FAQ_DATA = [
   {
@@ -78,7 +79,7 @@ export default function FaqScreen() {
         showsVerticalScrollIndicator={false}
       >
         {FAQ_DATA.map((cat, ci) => (
-          <Animated.View key={cat.category} entering={FadeInDown.delay(ci * 80).duration(400)}>
+          <Animated.View key={cat.category} entering={fadeInDown(ci)}>
             <View style={styles.catHeader}>
               <View style={[styles.catIcon, { backgroundColor: cat.color + "18" }]}>
                 <Feather name={cat.icon} size={18} color={cat.color} />

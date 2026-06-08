@@ -1,13 +1,15 @@
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function DeliveryOtpScreen() {
   const colors = useColors();
@@ -17,6 +19,7 @@ export default function DeliveryOtpScreen() {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [issueModal, setIssueModal] = useState(false);
   const inputs = useRef<(TextInput | null)[]>([]);
 
   const activeOrder = orders.find((o) => o.status === "delivering");
@@ -50,6 +53,18 @@ export default function DeliveryOtpScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <ConfirmModal
+        visible={issueModal}
+        onClose={() => setIssueModal(false)}
+        title="Delivery Issue"
+        body="Customer not available. What would you like to do?"
+        confirmText="Mark as Failed"
+        cancelText="Reschedule"
+        onConfirm={() => router.push("/delivery/failed" as any)}
+        onCancel={() => router.push("/delivery/reschedule" as any)}
+        variant="destructive"
+        icon="alert-circle"
+      />
       <ScreenHeader title="Verify OTP" showBack />
       <View
         style={[
@@ -58,7 +73,7 @@ export default function DeliveryOtpScreen() {
         ]}
       >
         {/* Header */}
-        <Animated.View entering={FadeInDown.delay(50).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(50)} style={styles.header}>
           <View style={[styles.headerIcon, { backgroundColor: colors.primaryLight }]}>
             <Text style={styles.headerEmoji}>🔐</Text>
           </View>
@@ -72,7 +87,7 @@ export default function DeliveryOtpScreen() {
 
         {/* Customer Card */}
         {activeOrder && (
-          <Animated.View entering={FadeInDown.delay(100).duration(500)}>
+          <Animated.View entering={fadeInDownDelay(100)}>
             <Card style={styles.customerCard}>
               <View style={styles.customerRow}>
                 <View style={[styles.customerAvatar, { backgroundColor: colors.primaryLight }]}>
@@ -95,7 +110,7 @@ export default function DeliveryOtpScreen() {
         )}
 
         {/* OTP Input */}
-        <Animated.View entering={FadeInDown.delay(150).duration(500)} style={styles.otpSection}>
+        <Animated.View entering={fadeInDownDelay(150)} style={styles.otpSection}>
           <Text style={[styles.otpLabel, { color: colors.foreground }]}>4-Digit OTP</Text>
           <View style={styles.otpRow}>
             {otp.map((digit, i) => (
@@ -128,7 +143,7 @@ export default function DeliveryOtpScreen() {
           ) : null}
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.actions}>
+        <Animated.View entering={fadeInDownDelay(200)} style={styles.actions}>
           <Button
             title="Confirm Delivery"
             onPress={handleVerify}
@@ -138,17 +153,7 @@ export default function DeliveryOtpScreen() {
           />
           <Button
             title="Customer not available? Report issue"
-            onPress={() => {
-              Alert.alert(
-                "Delivery Issue",
-                "What would you like to do?",
-                [
-                  { text: "Try again later", onPress: () => router.push("/delivery/reschedule" as any) },
-                  { text: "Mark as failed", style: "destructive", onPress: () => router.push("/delivery/failed" as any) },
-                  { text: "Cancel", style: "cancel" },
-                ]
-              );
-            }}
+            onPress={() => setIssueModal(true)}
             variant="ghost"
             size="md"
           />

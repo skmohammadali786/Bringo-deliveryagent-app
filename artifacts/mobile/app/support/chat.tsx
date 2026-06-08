@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
+import Animated, { FadeInRight } from "react-native-reanimated";
+import { fadeInDown } from "@/constants/animations";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
@@ -124,7 +125,7 @@ export default function SupportChatScreen() {
         {messages.map((msg, i) => (
           <Animated.View
             key={msg.id}
-            entering={FadeInDown.delay(i < 2 ? i * 100 : 0).duration(400)}
+            entering={fadeInDown(i < 2 ? i : 0)}
             style={[styles.msgRow, msg.role === "user" && styles.msgRowUser]}
           >
             {msg.role === "agent" && (

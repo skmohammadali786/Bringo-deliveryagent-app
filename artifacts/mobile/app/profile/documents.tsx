@@ -1,13 +1,15 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown } from "@/constants/animations";
 
 const DOCUMENTS = [
   { id: "aadhar", label: "Aadhaar Card", icon: "credit-card", status: "verified", required: true },
@@ -31,25 +33,36 @@ export default function DocumentsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [uploading, setUploading] = useState<string | null>(null);
+  const [uploadModal, setUploadModal] = useState(false);
 
   const handleUpload = async (docId: string) => {
     setUploading(docId);
     await new Promise((r) => setTimeout(r, 1500));
     setUploading(null);
-    Alert.alert("Uploaded", "Document uploaded successfully. It will be reviewed within 24 hours.");
+    setUploadModal(true);
   };
 
   const verified = DOCUMENTS.filter((d) => d.status === "verified").length;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ConfirmModal
+        visible={uploadModal}
+        onClose={() => setUploadModal(false)}
+        title="Uploaded"
+        body="Document uploaded successfully. It will be reviewed within 24 hours."
+        confirmText="OK"
+        onConfirm={() => setUploadModal(false)}
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="Documents" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Progress */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Card style={styles.progressCard}>
             <View style={styles.progressHeader}>
               <Text style={[styles.progressTitle, { color: colors.foreground }]}>Verification Progress</Text>

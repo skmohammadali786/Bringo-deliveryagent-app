@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { DocumentUpload } from "@/components/common/DocumentUpload";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay } from "@/constants/animations";
 
 export default function AadhaarFrontScreen() {
   const colors = useColors();
@@ -18,16 +19,16 @@ export default function AadhaarFrontScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title="Aadhaar Card" showBack />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 20 : 0 }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <Text style={[styles.title, { color: colors.foreground }]}>Aadhaar — Front Side</Text>
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>
             Take a clear photo of the front side of your Aadhaar card. All details must be clearly visible.
           </Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+        <Animated.View entering={fadeInDownDelay(200)}>
           <DocumentUpload label="Front Side" hint="Photo with your name, photo, DOB, and Aadhaar number" onSelect={setUri} />
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={[styles.infoBox, { backgroundColor: colors.muted, borderRadius: colors.radiusSm }]}>
+        <Animated.View entering={fadeInDownDelay(300)} style={[styles.infoBox, { backgroundColor: colors.muted, borderRadius: colors.radiusSm }]}>
           <Text style={[styles.infoTitle, { color: colors.foreground }]}>Guidelines</Text>
           {["Place card on a flat surface", "Ensure all text is readable", "Avoid glare or shadows", "Image should not be cropped"].map((g) => (
             <Text key={g} style={[styles.guideline, { color: colors.mutedForeground }]}>• {g}</Text>

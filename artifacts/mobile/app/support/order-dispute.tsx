@@ -1,10 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
@@ -27,22 +28,20 @@ export default function OrderDisputeScreen() {
   const [orderId, setOrderId] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [validationModal, setValidationModal] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   const completedOrders = orders.filter((o) => ["delivered", "cancelled", "failed"].includes(o.status));
 
   const handleSubmit = async () => {
     if (!disputeType || !description.trim()) {
-      Alert.alert("Required", "Please select dispute type and describe the issue.");
+      setValidationModal(true);
       return;
     }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
     setLoading(false);
-    Alert.alert(
-      "Dispute Filed ✓",
-      "We've received your dispute and will review it within 24 hours. You'll receive a notification with the resolution.",
-      [{ text: "OK", onPress: () => router.back() }]
-    );
+    setSuccessModal(true);
   };
 
   return (
@@ -50,6 +49,28 @@ export default function OrderDisputeScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <ConfirmModal
+        visible={validationModal}
+        onClose={() => setValidationModal(false)}
+        title="Missing Information"
+        body="Please select a dispute type and describe the issue before submitting."
+        confirmText="OK"
+        onConfirm={() => setValidationModal(false)}
+        cancelText=""
+        variant="warning"
+        icon="alert-triangle"
+      />
+      <ConfirmModal
+        visible={successModal}
+        onClose={() => { setSuccessModal(false); router.back(); }}
+        title="Dispute Filed"
+        body="We've received your dispute and will review it within 24 hours. You'll receive a notification with the resolution."
+        confirmText="Done"
+        onConfirm={() => router.back()}
+        cancelText=""
+        variant="success"
+        icon="check-circle"
+      />
       <ScreenHeader title="Order Dispute" showBack />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 16 : 16 }]}

@@ -2,13 +2,14 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
+import { fadeInDownDelay, fadeInUpDelay } from "@/constants/animations";
 
 const MAP_APPS = [
   { id: "google", name: "Google Maps", icon: "map" as const, color: "#4285F4", url: "https://maps.google.com" },
@@ -53,7 +54,7 @@ export default function NavigateScreen() {
         {/* Floating Route Card */}
         {activeOrder && (
           <Animated.View
-            entering={FadeInUp.delay(200).duration(500)}
+            entering={fadeInUpDelay(200)}
             style={[styles.routeCard, { backgroundColor: colors.card, borderColor: colors.border }]}
           >
             <View style={styles.routeRow}>
@@ -77,7 +78,7 @@ export default function NavigateScreen() {
         <View style={[styles.sheetHandle, { backgroundColor: colors.border }]} />
 
         {/* ETA Card */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(100)}>
           <Card style={styles.etaCard}>
             <View style={styles.etaItem}>
               <Feather name="clock" size={20} color={colors.primary} />
@@ -112,7 +113,7 @@ export default function NavigateScreen() {
         </Animated.View>
 
         {/* Map App Selector */}
-        <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(150)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Open Navigation In</Text>
           <View style={styles.mapApps}>
             {MAP_APPS.map((app) => (

@@ -2,11 +2,12 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDown, fadeInDownDelay } from "@/constants/animations";
 
 const EMERGENCY_SERVICES = [
   { name: "Police", number: "100", icon: "shield", color: "#4A90E2", desc: "Theft, harassment, crime" },
@@ -36,7 +37,7 @@ export default function EmergencyScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* SOS CTA */}
-        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+        <Animated.View entering={fadeInDown(0)}>
           <Pressable
             onPress={() => router.push("/safety/sos" as any)}
             style={[styles.sosCta, { backgroundColor: colors.destructive, borderRadius: colors.radius }]}
@@ -53,7 +54,7 @@ export default function EmergencyScreen() {
         </Animated.View>
 
         {/* Govt Services */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(80)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Government Emergency Services</Text>
           <View style={styles.serviceGrid}>
             {EMERGENCY_SERVICES.map((s) => (
@@ -74,7 +75,7 @@ export default function EmergencyScreen() {
         </Animated.View>
 
         {/* Bringo Contacts */}
-        <Animated.View entering={FadeInDown.delay(160).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(160)}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Bringo Emergency Contacts</Text>
           <Card padding={0}>
             {BRINGO_CONTACTS.map((c, i) => (
@@ -101,7 +102,7 @@ export default function EmergencyScreen() {
         </Animated.View>
 
         {/* Tips */}
-        <Animated.View entering={FadeInDown.delay(240).duration(400)}>
+        <Animated.View entering={fadeInDownDelay(240)}>
           <Card style={[styles.tipsCard, { backgroundColor: colors.infoLight }]}>
             <Feather name="info" size={18} color={colors.info} />
             <View style={{ flex: 1, gap: 4 }}>

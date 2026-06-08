@@ -2,11 +2,12 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+import { fadeInDownDelay, fadeInDownIndexed } from "@/constants/animations";
 
 const CHECKS = [
   { icon: "shield", label: "Criminal Background Check", desc: "Automated police record verification" },
@@ -24,7 +25,7 @@ export default function BackgroundVerifyScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title="Background Check" showBack />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 20 : 0 }]}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.header}>
+        <Animated.View entering={fadeInDownDelay(100)} style={styles.header}>
           <View style={[styles.iconBig, { backgroundColor: colors.primaryLight }]}>
             <Feather name="shield" size={40} color={colors.primary} />
           </View>
@@ -32,7 +33,7 @@ export default function BackgroundVerifyScreen() {
           <Text style={[styles.sub, { color: colors.mutedForeground }]}>We run automated checks to ensure the safety of our platform</Text>
         </Animated.View>
         {CHECKS.map((c, i) => (
-          <Animated.View key={c.label} entering={FadeInDown.delay(200 + i * 80).duration(400)} style={[styles.checkCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}>
+          <Animated.View key={c.label} entering={fadeInDownIndexed(200, i)} style={[styles.checkCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}>
             <View style={[styles.checkIcon, { backgroundColor: colors.primaryLight }]}>
               <Feather name={c.icon as any} size={20} color={colors.primary} />
             </View>
@@ -43,7 +44,7 @@ export default function BackgroundVerifyScreen() {
             <Feather name="check-circle" size={18} color={colors.success} />
           </Animated.View>
         ))}
-        <Animated.View entering={FadeInDown.delay(600).duration(500)} style={[styles.note, { backgroundColor: colors.accentLight, borderRadius: colors.radiusSm }]}>
+        <Animated.View entering={fadeInDownDelay(600)} style={[styles.note, { backgroundColor: colors.accentLight, borderRadius: colors.radiusSm }]}>
           <Feather name="clock" size={14} color={colors.accent} />
           <Text style={[styles.noteText, { color: colors.foreground }]}>Takes 24–48 hours. You'll be notified via SMS and app once done.</Text>
         </Animated.View>
