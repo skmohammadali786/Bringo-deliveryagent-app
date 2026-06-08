@@ -252,5 +252,3 @@ const styles = StyleSheet.create({
   },
   orderLinkText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
 });
-
-import { Pressable } from "react-native";

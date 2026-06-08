@@ -145,8 +145,6 @@ export default function UpiScreen() {
   );
 }
 
-import { Pressable } from "react-native";
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: 20, gap: 20 },
