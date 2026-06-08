@@ -1,7 +1,7 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Dimensions,
   Platform,
@@ -15,13 +15,14 @@ import {
 import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnlineToggle } from "@/components/home/OnlineToggle";
+import { OrderRequestSheet } from "@/components/home/OrderRequestSheet";
 import { OrderCard } from "@/components/order/OrderCard";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { useColors } from "@/hooks/useColors";
 import { useAppStore } from "@/store/appStore";
 import { useAuthStore } from "@/store/authStore";
-import { useOrderStore } from "@/store/orderStore";
+import { Order, useOrderStore } from "@/store/orderStore";
 
 const { width } = Dimensions.get("window");
 
@@ -32,11 +33,55 @@ const QUICK_ACTIONS = [
   { icon: "headphones" as const, label: "Support", color: "#34C759", bg: "#E8F9EC", route: "/support/" },
 ];
 
+const STAT_CONFIG = [
+  { label: "Rating", icon: "star" as const, colorKey: "accent", route: "/performance/ratings" },
+  { label: "Acceptance", icon: "check-circle" as const, colorKey: "success", route: "/performance/analytics" },
+  { label: "Completion", icon: "award" as const, colorKey: "accentPurple", route: "/performance/analytics" },
+] as const;
+
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
   return "Good evening";
+}
+
+function buildSimulatedOrder(): Order {
+  return {
+    id: `ord-sim-${Date.now()}`,
+    orderNumber: `BRG-2024-${Math.floor(Math.random() * 900) + 100}`,
+    status: "new",
+    shop: {
+      id: `shop-sim-${Date.now()}`,
+      name: "Reliance Fresh",
+      address: "14, HSR Layout, Sector 4, Bengaluru",
+      phone: "+919876540001",
+      lat: 12.9121,
+      lng: 77.6446,
+      type: "Grocery",
+      distance: "0.5 km",
+    },
+    customer: {
+      name: "Arjun Mehta",
+      phone: "+919123400001",
+      address: "Block B, Prestige Shantiniketan, Whitefield, Bengaluru",
+      landmark: "Near ITPL Gate",
+      lat: 12.9899,
+      lng: 77.7478,
+    },
+    items: [
+      { id: "si1", name: "Aashirvaad Atta", quantity: 1, price: 285, unit: "5kg" },
+      { id: "si2", name: "Fortune Sunflower Oil", quantity: 1, price: 185, unit: "1L" },
+      { id: "si3", name: "Maggi Noodles", quantity: 4, price: 14, unit: "70g each" },
+    ],
+    totalAmount: 526,
+    deliveryFee: 70,
+    distance: "1.7 km",
+    estimatedTime: "20 min",
+    paymentMode: "prepaid",
+    priority: "standard",
+    createdAt: new Date().toISOString(),
+  };
 }
 
 export default function HomeScreen() {
@@ -45,13 +90,47 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { agent, isOnline } = useAuthStore();
   const { earnings, acceptanceRate, completionRate, avgRating, shiftStartTime, totalHoursToday } = useAppStore();
-  const { orders, activeOrderId } = useOrderStore();
+  const { orders, acceptOrder, rejectOrder, addOrder } = useOrderStore();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [showSheet, setShowSheet] = React.useState(false);
+
+  const shownOrderIdRef = useRef<string | null>(null);
+
+  const incomingOrder = orders.find((o) => o.status === "new") ?? null;
 
   const activeOrders = orders.filter((o) =>
-    ["new", "accepted", "at_shop", "picked_up", "delivering"].includes(o.status)
+    ["accepted", "at_shop", "picked_up", "delivering"].includes(o.status)
   );
   const recentDelivered = orders.filter((o) => o.status === "delivered").slice(0, 3);
+
+  useEffect(() => {
+    if (incomingOrder && incomingOrder.id !== shownOrderIdRef.current) {
+      shownOrderIdRef.current = incomingOrder.id;
+      setShowSheet(true);
+    }
+    if (!incomingOrder) {
+      shownOrderIdRef.current = null;
+    }
+  }, [incomingOrder?.id]);
+
+  const handleAccept = () => {
+    if (!incomingOrder) return;
+    const shopId = incomingOrder.shop.id;
+    acceptOrder(incomingOrder.id);
+    setShowSheet(false);
+    router.push(`/shop/${shopId}` as any);
+  };
+
+  const handleDecline = (_reason?: string) => {
+    if (!incomingOrder) return;
+    rejectOrder(incomingOrder.id);
+    setShowSheet(false);
+    shownOrderIdRef.current = null;
+  };
+
+  const handleSimulateOrder = () => {
+    addOrder(buildSimulatedOrder());
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -65,223 +144,281 @@ export default function HomeScreen() {
   const shiftHours = Math.floor(shiftDuration / 60);
   const shiftMins = shiftDuration % 60;
 
+  const statValues = [
+    avgRating.toFixed(2),
+    `${acceptanceRate}%`,
+    `${completionRate}%`,
+  ];
+
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: insets.top + (Platform.OS === "web" ? 67 : 0),
-          paddingBottom: insets.bottom + 100,
-        },
-      ]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.primary}
-        />
-      }
-    >
-      {/* ─── Header ─── */}
-      <Animated.View entering={FadeInDown.delay(0).duration(500)} style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={[styles.greeting, { color: colors.mutedForeground }]}>
-            {getGreeting()},
-          </Text>
-          <Text style={[styles.name, { color: colors.foreground }]}>
-            {agent?.name?.split(" ")[0] || "Agent"} 👋
-          </Text>
-        </View>
-        <View style={styles.headerRight}>
-          <Pressable
-            onPress={() => router.push("/notifications/" as any)}
-            style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-          >
-            <Feather name="bell" size={20} color={colors.foreground} />
-            <View style={[styles.notifDot, { backgroundColor: colors.primary }]} />
-          </Pressable>
-        </View>
-      </Animated.View>
-
-      {/* ─── Online Toggle ─── */}
-      <Animated.View entering={FadeInDown.delay(80).duration(500)}>
-        <Card style={styles.onlineCard}>
-          <OnlineToggle />
-          {isOnline && (
-            <View style={[styles.shiftRow, { backgroundColor: colors.successLight, borderRadius: 12 }]}>
-              <View style={[styles.shiftDot, { backgroundColor: colors.success }]} />
-              <Text style={[styles.shiftText, { color: colors.success }]}>
-                Shift Active • {shiftHours}h {shiftMins.toString().padStart(2, "0")}m
-              </Text>
-              <View style={[styles.shiftEarning, { backgroundColor: colors.success }]}>
-                <Text style={styles.shiftEarningText}>₹{earnings.today}</Text>
-              </View>
-            </View>
-          )}
-        </Card>
-      </Animated.View>
-
-      {/* ─── Earnings Hero ─── */}
-      <Animated.View entering={FadeInDown.delay(150).duration(500)}>
-        <LinearGradient
-          colors={["#FF6B35", "#E8501C"]}
-          style={[styles.earningsHero, { borderRadius: colors.radius }]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.earningsTop}>
-            <View>
-              <Text style={styles.earningsLabel}>Today's Earnings</Text>
-              <View style={styles.earningsRow}>
-                <MaterialCommunityIcons name="currency-inr" size={28} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.earningsValue}>{earnings.today.toLocaleString("en-IN")}</Text>
-              </View>
-              <Text style={styles.earningsSub}>
-                {earnings.todayOrders} deliveries · ₹{earnings.incentives} bonus
-              </Text>
-            </View>
+    <>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: insets.top + (Platform.OS === "web" ? 67 : 0),
+            paddingBottom: insets.bottom + 100,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
+        {/* ─── Header ─── */}
+        <Animated.View entering={FadeInDown.delay(0).duration(500)} style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.greeting, { color: colors.mutedForeground }]}>
+              {getGreeting()},
+            </Text>
+            <Text style={[styles.name, { color: colors.foreground }]}>
+              {agent?.name?.split(" ")[0] || "Agent"} 👋
+            </Text>
+          </View>
+          <View style={styles.headerRight}>
             <Pressable
-              onPress={() => router.push("/(tabs)/earnings")}
-              style={[styles.viewDetailsBtn, { backgroundColor: "rgba(255,255,255,0.18)" }]}
+              onPress={() => router.push("/notifications/" as any)}
+              style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
             >
-              <Text style={styles.viewDetailsBtnText}>Details</Text>
-              <Feather name="arrow-right" size={13} color="#FFF" />
+              <Feather name="bell" size={20} color={colors.foreground} />
+              <View style={[styles.notifDot, { backgroundColor: colors.primary }]} />
             </Pressable>
           </View>
+        </Animated.View>
 
-          <View style={[styles.earningsStats, { borderTopColor: "rgba(255,255,255,0.2)" }]}>
-            {[
-              { label: "Deliveries", value: earnings.todayOrders.toString() },
-              { label: "Avg per order", value: `₹${Math.round(earnings.today / Math.max(earnings.todayOrders, 1))}` },
-              { label: "Online hours", value: `${shiftHours}h ${shiftMins.toString().padStart(2, "0")}m` },
-            ].map((s, i) => (
-              <View key={s.label} style={[styles.earningsStat, i > 0 && { borderLeftWidth: 1, borderLeftColor: "rgba(255,255,255,0.2)" }]}>
-                <Text style={styles.earningsStatVal}>{s.value}</Text>
-                <Text style={styles.earningsStatLabel}>{s.label}</Text>
+        {/* ─── Online Toggle ─── */}
+        <Animated.View entering={FadeInDown.delay(80).duration(500)}>
+          <Card style={styles.onlineCard}>
+            <OnlineToggle />
+            {isOnline && (
+              <View style={[styles.shiftRow, { backgroundColor: colors.successLight, borderRadius: 12 }]}>
+                <View style={[styles.shiftDot, { backgroundColor: colors.success }]} />
+                <Text style={[styles.shiftText, { color: colors.success }]}>
+                  Shift Active • {shiftHours}h {shiftMins.toString().padStart(2, "0")}m
+                </Text>
+                <View style={[styles.shiftEarning, { backgroundColor: colors.success }]}>
+                  <Text style={styles.shiftEarningText}>₹{earnings.today}</Text>
+                </View>
               </View>
+            )}
+          </Card>
+        </Animated.View>
+
+        {/* ─── Demo: Simulate Incoming Order ─── */}
+        {!incomingOrder && (
+          <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+            <Pressable
+              onPress={handleSimulateOrder}
+              style={({ pressed }) => [
+                styles.simulateBanner,
+                {
+                  backgroundColor: colors.primaryLight,
+                  borderColor: colors.primary + "40",
+                  borderRadius: colors.radiusSm,
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <View style={[styles.simulateIcon, { backgroundColor: colors.primary + "20" }]}>
+                <Feather name="bell" size={18} color={colors.primary} />
+              </View>
+              <View style={styles.simulateText}>
+                <Text style={[styles.simulateTitle, { color: colors.primary }]}>
+                  Simulate Incoming Order
+                </Text>
+                <Text style={[styles.simulateSub, { color: colors.primary + "99" }]}>
+                  Tap to demo the order request flow
+                </Text>
+              </View>
+              <Feather name="play" size={16} color={colors.primary} />
+            </Pressable>
+          </Animated.View>
+        )}
+
+        {/* ─── Earnings Hero ─── */}
+        <Animated.View entering={FadeInDown.delay(150).duration(500)}>
+          <LinearGradient
+            colors={["#FF6B35", "#E8501C"]}
+            style={[styles.earningsHero, { borderRadius: colors.radius }]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.earningsTop}>
+              <View>
+                <Text style={styles.earningsLabel}>Today's Earnings</Text>
+                <View style={styles.earningsRow}>
+                  <MaterialCommunityIcons name="currency-inr" size={28} color="rgba(255,255,255,0.9)" />
+                  <Text style={styles.earningsValue}>{earnings.today.toLocaleString("en-IN")}</Text>
+                </View>
+                <Text style={styles.earningsSub}>
+                  {earnings.todayOrders} deliveries · ₹{earnings.incentives} bonus
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => router.push("/(tabs)/earnings")}
+                style={[styles.viewDetailsBtn, { backgroundColor: "rgba(255,255,255,0.18)" }]}
+              >
+                <Text style={styles.viewDetailsBtnText}>Details</Text>
+                <Feather name="arrow-right" size={13} color="#FFF" />
+              </Pressable>
+            </View>
+
+            <View style={[styles.earningsStats, { borderTopColor: "rgba(255,255,255,0.2)" }]}>
+              {[
+                { label: "Deliveries", value: earnings.todayOrders.toString() },
+                { label: "Avg per order", value: `₹${Math.round(earnings.today / Math.max(earnings.todayOrders, 1))}` },
+                { label: "Online hours", value: `${shiftHours}h ${shiftMins.toString().padStart(2, "0")}m` },
+              ].map((s, i) => (
+                <View key={s.label} style={[styles.earningsStat, i > 0 && { borderLeftWidth: 1, borderLeftColor: "rgba(255,255,255,0.2)" }]}>
+                  <Text style={styles.earningsStatVal}>{s.value}</Text>
+                  <Text style={styles.earningsStatLabel}>{s.label}</Text>
+                </View>
+              ))}
+            </View>
+          </LinearGradient>
+        </Animated.View>
+
+        {/* ─── Performance Stats (tappable shortcuts) ─── */}
+        <Animated.View entering={FadeInDown.delay(220).duration(500)} style={styles.statsRow}>
+          {STAT_CONFIG.map((s, i) => {
+            const color = (colors as any)[s.colorKey] as string;
+            return (
+              <Pressable
+                key={s.label}
+                onPress={() => router.push(s.route as any)}
+                style={({ pressed }) => [styles.statPressable, { opacity: pressed ? 0.72 : 1 }]}
+              >
+                <Card style={styles.statCard} shadow>
+                  <View style={[styles.statIcon, { backgroundColor: color + "18" }]}>
+                    <Feather name={s.icon} size={16} color={color} />
+                  </View>
+                  <Text style={[styles.statValue, { color: colors.foreground }]}>{statValues[i]}</Text>
+                  <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{s.label}</Text>
+                  <Feather
+                    name="chevron-right"
+                    size={10}
+                    color={colors.mutedForeground}
+                    style={styles.statChevron}
+                  />
+                </Card>
+              </Pressable>
+            );
+          })}
+        </Animated.View>
+
+        {/* ─── Quick Actions ─── */}
+        <Animated.View entering={FadeInDown.delay(290).duration(500)}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Actions</Text>
+          <View style={styles.quickGrid}>
+            {QUICK_ACTIONS.map((a) => (
+              <Pressable
+                key={a.label}
+                onPress={() => router.push(a.route as any)}
+                style={[styles.quickAction, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}
+              >
+                <View style={[styles.qaIconWrap, { backgroundColor: a.bg }]}>
+                  <Feather name={a.icon} size={22} color={a.color} />
+                </View>
+                <Text style={[styles.qaLabel, { color: colors.foreground }]}>{a.label}</Text>
+              </Pressable>
             ))}
           </View>
-        </LinearGradient>
-      </Animated.View>
-
-      {/* ─── Performance Stats ─── */}
-      <Animated.View entering={FadeInDown.delay(220).duration(500)} style={styles.statsRow}>
-        {[
-          { label: "Rating", value: avgRating.toFixed(2), color: colors.accent, icon: "star" as const },
-          { label: "Acceptance", value: `${acceptanceRate}%`, color: colors.success, icon: "check-circle" as const },
-          { label: "Completion", value: `${completionRate}%`, color: colors.accentPurple, icon: "award" as const },
-        ].map((s) => (
-          <Card key={s.label} style={styles.statCard} shadow>
-            <View style={[styles.statIcon, { backgroundColor: s.color + "18" }]}>
-              <Feather name={s.icon} size={16} color={s.color} />
-            </View>
-            <Text style={[styles.statValue, { color: colors.foreground }]}>{s.value}</Text>
-            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{s.label}</Text>
-          </Card>
-        ))}
-      </Animated.View>
-
-      {/* ─── Quick Actions ─── */}
-      <Animated.View entering={FadeInDown.delay(290).duration(500)}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Actions</Text>
-        <View style={styles.quickGrid}>
-          {QUICK_ACTIONS.map((a) => (
-            <Pressable
-              key={a.label}
-              onPress={() => router.push(a.route as any)}
-              style={[styles.quickAction, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}
-            >
-              <View style={[styles.qaIconWrap, { backgroundColor: a.bg }]}>
-                <Feather name={a.icon} size={22} color={a.color} />
-              </View>
-              <Text style={[styles.qaLabel, { color: colors.foreground }]}>{a.label}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </Animated.View>
-
-      {/* ─── Active Orders ─── */}
-      {activeOrders.length > 0 && (
-        <Animated.View entering={FadeInDown.delay(360).duration(500)}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Active Orders</Text>
-            <Badge label={`${activeOrders.length} active`} variant="primary" />
-          </View>
-          {activeOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
         </Animated.View>
-      )}
 
-      {/* ─── Weekly Progress ─── */}
-      <Animated.View entering={FadeInDown.delay(420).duration(500)}>
-        <Pressable
-          onPress={() => router.push("/performance/" as any)}
-          style={[styles.weeklyCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}
-        >
-          <View style={styles.weeklyHeader}>
-            <View>
-              <Text style={[styles.weeklyTitle, { color: colors.foreground }]}>Weekly Progress</Text>
-              <Text style={[styles.weeklySub, { color: colors.mutedForeground }]}>
-                ₹{earnings.week.toLocaleString("en-IN")} · {earnings.weekOrders} deliveries
+        {/* ─── Active Orders ─── */}
+        {activeOrders.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(360).duration(500)}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Active Orders</Text>
+              <Badge label={`${activeOrders.length} active`} variant="primary" />
+            </View>
+            {activeOrders.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </Animated.View>
+        )}
+
+        {/* ─── Weekly Progress ─── */}
+        <Animated.View entering={FadeInDown.delay(420).duration(500)}>
+          <Pressable
+            onPress={() => router.push("/performance/" as any)}
+            style={[styles.weeklyCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}
+          >
+            <View style={styles.weeklyHeader}>
+              <View>
+                <Text style={[styles.weeklyTitle, { color: colors.foreground }]}>Weekly Progress</Text>
+                <Text style={[styles.weeklySub, { color: colors.mutedForeground }]}>
+                  ₹{earnings.week.toLocaleString("en-IN")} · {earnings.weekOrders} deliveries
+                </Text>
+              </View>
+              <View style={[styles.weeklyBadge, { backgroundColor: colors.primaryLight }]}>
+                <Text style={[styles.weeklyBadgeText, { color: colors.primary }]}>Top 10%</Text>
+              </View>
+            </View>
+            <View style={[styles.progressBg, { backgroundColor: colors.muted }]}>
+              <View style={[styles.progressFill, { backgroundColor: colors.primary, width: `${Math.min((earnings.weekOrders / 50) * 100, 100)}%` }]} />
+            </View>
+            <View style={styles.weeklyFooter}>
+              <Text style={[styles.weeklyProgressText, { color: colors.mutedForeground }]}>
+                {earnings.weekOrders}/50 orders target
+              </Text>
+              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+            </View>
+          </Pressable>
+        </Animated.View>
+
+        {/* ─── Incentive Banner ─── */}
+        <Animated.View entering={FadeInDown.delay(480).duration(500)}>
+          <Pressable
+            onPress={() => router.push("/earnings/incentives" as any)}
+            style={[styles.incentiveBanner, { backgroundColor: colors.accentLight, borderColor: colors.accent + "40", borderRadius: colors.radiusSm }]}
+          >
+            <View style={[styles.incentiveIcon, { backgroundColor: colors.accent + "25" }]}>
+              <Feather name="zap" size={20} color={colors.accent} />
+            </View>
+            <View style={styles.incentiveText}>
+              <Text style={[styles.incentiveTitle, { color: colors.foreground }]}>
+                Complete 5 more orders today
+              </Text>
+              <Text style={[styles.incentiveSub, { color: colors.mutedForeground }]}>
+                Earn ₹200 peak bonus • 3/5 completed
               </Text>
             </View>
-            <View style={[styles.weeklyBadge, { backgroundColor: colors.primaryLight }]}>
-              <Text style={[styles.weeklyBadgeText, { color: colors.primary }]}>Top 10%</Text>
+            <View style={[styles.incentiveArrow, { backgroundColor: colors.accent }]}>
+              <Feather name="arrow-right" size={14} color="#FFF" />
             </View>
-          </View>
-          <View style={[styles.progressBg, { backgroundColor: colors.muted }]}>
-            <View style={[styles.progressFill, { backgroundColor: colors.primary, width: `${Math.min((earnings.weekOrders / 50) * 100, 100)}%` }]} />
-          </View>
-          <View style={styles.weeklyFooter}>
-            <Text style={[styles.weeklyProgressText, { color: colors.mutedForeground }]}>
-              {earnings.weekOrders}/50 orders target
-            </Text>
-            <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-          </View>
-        </Pressable>
-      </Animated.View>
-
-      {/* ─── Incentive Banner ─── */}
-      <Animated.View entering={FadeInDown.delay(480).duration(500)}>
-        <Pressable
-          onPress={() => router.push("/earnings/incentives" as any)}
-          style={[styles.incentiveBanner, { backgroundColor: colors.accentLight, borderColor: colors.accent + "40", borderRadius: colors.radiusSm }]}
-        >
-          <View style={[styles.incentiveIcon, { backgroundColor: colors.accent + "25" }]}>
-            <Feather name="zap" size={20} color={colors.accent} />
-          </View>
-          <View style={styles.incentiveText}>
-            <Text style={[styles.incentiveTitle, { color: colors.foreground }]}>
-              Complete 5 more orders today
-            </Text>
-            <Text style={[styles.incentiveSub, { color: colors.mutedForeground }]}>
-              Earn ₹200 peak bonus • 3/5 completed
-            </Text>
-          </View>
-          <View style={[styles.incentiveArrow, { backgroundColor: colors.accent }]}>
-            <Feather name="arrow-right" size={14} color="#FFF" />
-          </View>
-        </Pressable>
-      </Animated.View>
-
-      {/* ─── Recent Deliveries ─── */}
-      {recentDelivered.length > 0 && (
-        <Animated.View entering={FadeInDown.delay(540).duration(500)}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Deliveries</Text>
-            <Pressable onPress={() => router.push("/(tabs)/orders")}>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
-            </Pressable>
-          </View>
-          {recentDelivered.map((order) => (
-            <OrderCard key={order.id} order={order} compact />
-          ))}
+          </Pressable>
         </Animated.View>
-      )}
-    </ScrollView>
+
+        {/* ─── Recent Deliveries ─── */}
+        {recentDelivered.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(540).duration(500)}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Deliveries</Text>
+              <Pressable onPress={() => router.push("/(tabs)/orders")}>
+                <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
+              </Pressable>
+            </View>
+            {recentDelivered.map((order) => (
+              <OrderCard key={order.id} order={order} compact />
+            ))}
+          </Animated.View>
+        )}
+      </ScrollView>
+
+      {/* ─── Incoming Order Request Sheet ─── */}
+      <OrderRequestSheet
+        visible={showSheet}
+        order={incomingOrder}
+        onAccept={handleAccept}
+        onDecline={handleDecline}
+      />
+    </>
   );
 }
 
@@ -333,6 +470,23 @@ const styles = StyleSheet.create({
   shiftText: { flex: 1, fontSize: 13, fontFamily: "Inter_600SemiBold" },
   shiftEarning: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
   shiftEarningText: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFF" },
+  simulateBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+    borderWidth: 1,
+  },
+  simulateIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  simulateText: { flex: 1, gap: 2 },
+  simulateTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  simulateSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
   earningsHero: { padding: 0, overflow: "hidden" },
   earningsTop: {
     flexDirection: "row",
@@ -392,7 +546,8 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.7)",
   },
   statsRow: { flexDirection: "row", gap: 10 },
-  statCard: { flex: 1, padding: 14, gap: 8, alignItems: "flex-start" },
+  statPressable: { flex: 1 },
+  statCard: { gap: 8, alignItems: "flex-start", padding: 14, position: "relative" },
   statIcon: {
     width: 36,
     height: 36,
@@ -402,6 +557,7 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   statLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  statChevron: { position: "absolute", top: 14, right: 14 },
   sectionTitle: {
     fontSize: 20,
     fontFamily: "Inter_700Bold",
