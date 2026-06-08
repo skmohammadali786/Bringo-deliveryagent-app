@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import Animated, {
   FadeIn,
+  FadeInDown,
   FadeOut,
   SlideInDown,
   SlideOutDown,
@@ -47,18 +48,36 @@ export function OrderRequestSheet({ visible, order, onAccept, onDecline }: Props
   const [showReasons, setShowReasons] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  /* ── Arrival haptic – fires when the sheet opens ── */
+  useEffect(() => {
+    if (visible && order && Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), 120);
+    }
+  }, [visible, order?.id]);
+
+  /* ── Countdown + urgency haptics ── */
   useEffect(() => {
     if (visible && order) {
       setTimeLeft(COUNTDOWN);
       setShowReasons(false);
       intervalRef.current = setInterval(() => {
         setTimeLeft((t) => {
-          if (t <= 1) {
+          const next = t - 1;
+          if (next <= 0) {
             clearInterval(intervalRef.current!);
             onDecline("Timed out");
             return 0;
           }
-          return t - 1;
+          /* Haptic tick in last 10 s */
+          if (next <= 10 && Platform.OS !== "web") {
+            Haptics.impactAsync(
+              next <= 5
+                ? Haptics.ImpactFeedbackStyle.Medium
+                : Haptics.ImpactFeedbackStyle.Light
+            );
+          }
+          return next;
         });
       }, 1000);
     } else {
@@ -101,14 +120,15 @@ export function OrderRequestSheet({ visible, order, onAccept, onDecline }: Props
   return (
     <Modal transparent animationType="none" visible={visible} statusBarTranslucent>
       <Animated.View
-        entering={FadeIn.duration(200)}
-        exiting={FadeOut.duration(200)}
+        entering={FadeIn.duration(220)}
+        exiting={FadeOut.duration(220)}
         style={[styles.backdrop, { backgroundColor: colors.overlay }]}
       />
 
+      {/* Sheet — snappy spring, minimal bounce */}
       <Animated.View
-        entering={SlideInDown.springify().damping(18).stiffness(200)}
-        exiting={SlideOutDown.duration(250)}
+        entering={SlideInDown.springify().damping(30).stiffness(300).mass(0.85)}
+        exiting={SlideOutDown.duration(240)}
         style={[styles.sheet, { backgroundColor: colors.card, borderColor: colors.border }]}
       >
         {/* Header row: badge + countdown */}
@@ -155,7 +175,10 @@ export function OrderRequestSheet({ visible, order, onAccept, onDecline }: Props
         </View>
 
         {/* Route card */}
-        <View style={[styles.routeCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+        <Animated.View
+          entering={FadeInDown.delay(60).duration(280)}
+          style={[styles.routeCard, { backgroundColor: colors.background, borderColor: colors.border }]}
+        >
           <View style={styles.routeRow}>
             <View style={[styles.routeDot, { backgroundColor: colors.primary }]} />
             <View style={styles.routeInfo}>
@@ -183,10 +206,10 @@ export function OrderRequestSheet({ visible, order, onAccept, onDecline }: Props
               </Text>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Stats */}
-        <View style={styles.statsRow}>
+        <Animated.View entering={FadeInDown.delay(120).duration(280)} style={styles.statsRow}>
           {[
             { icon: "navigation" as const, label: "Distance", value: order.distance },
             { icon: "clock" as const, label: "Est. Time", value: order.estimatedTime },
@@ -198,10 +221,13 @@ export function OrderRequestSheet({ visible, order, onAccept, onDecline }: Props
               <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{s.label}</Text>
             </View>
           ))}
-        </View>
+        </Animated.View>
 
         {/* Earnings */}
-        <View style={[styles.earningsRow, { backgroundColor: colors.successLight, borderRadius: colors.radiusSm }]}>
+        <Animated.View
+          entering={FadeInDown.delay(180).duration(280)}
+          style={[styles.earningsRow, { backgroundColor: colors.successLight, borderRadius: colors.radiusSm }]}
+        >
           <View style={styles.earningsLeft}>
             <Text style={[styles.earningsLabel, { color: colors.mutedForeground }]}>Your Earnings</Text>
             <Text style={[styles.earningsVal, { color: colors.success }]}>₹{order.deliveryFee}</Text>
@@ -221,7 +247,7 @@ export function OrderRequestSheet({ visible, order, onAccept, onDecline }: Props
               </View>
             )}
           </View>
-        </View>
+        </Animated.View>
 
         {/* Decline reasons */}
         {showReasons && (
@@ -254,7 +280,7 @@ export function OrderRequestSheet({ visible, order, onAccept, onDecline }: Props
 
         {/* Action buttons */}
         {!showReasons && (
-          <View style={styles.buttons}>
+          <Animated.View entering={FadeInDown.delay(240).duration(280)} style={styles.buttons}>
             <Pressable
               onPress={handleDeclinePress}
               style={({ pressed }) => [
@@ -276,7 +302,7 @@ export function OrderRequestSheet({ visible, order, onAccept, onDecline }: Props
               <Feather name="check" size={20} color="#FFF" />
               <Text style={styles.acceptBtnText}>Accept Order</Text>
             </Pressable>
-          </View>
+          </Animated.View>
         )}
 
         {/* Back option when showing reasons */}

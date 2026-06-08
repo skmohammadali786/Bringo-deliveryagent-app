@@ -1,0 +1,14 @@
+const MapViewStub: any = null;
+export default MapViewStub;
+export const Marker: any = null;
+export const Polyline: any = null;
+export const Callout: any = null;
+export const Circle: any = null;
+export const Polygon: any = null;
+export const Heatmap: any = null;
+export const Overlay: any = null;
+export const UrlTile: any = null;
+export const AnimatedRegion: any = null;
+export const MarkerAnimated: any = null;
+export const MapCallout: any = null;
+export const MapMarker: any = null;

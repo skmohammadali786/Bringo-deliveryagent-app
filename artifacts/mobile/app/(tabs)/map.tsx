@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import MapView, { Callout, Marker, Polyline } from "react-native-maps";
+import Svg, { Circle, G, Line, Rect, Text as SvgText } from "react-native-svg";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
@@ -28,7 +29,7 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
   delivering: "Out for delivery",
 };
 
-// Demo coordinates — Bangalore (Koramangala → Indiranagar)
+// Demo coordinates — active-order map (Koramangala → Indiranagar)
 const PICKUP_COORD  = { latitude: 12.9350, longitude: 77.6243 };
 const DROPOFF_COORD = { latitude: 12.9716, longitude: 77.6406 };
 const ORDER_MAP_REGION = {
@@ -37,6 +38,23 @@ const ORDER_MAP_REGION = {
   latitudeDelta: 0.065,
   longitudeDelta: 0.065,
 };
+
+// Heatmap demand zones
+const HEATMAP_REGION = {
+  latitude: 12.9300,
+  longitude: 77.6200,
+  latitudeDelta: 0.12,
+  longitudeDelta: 0.12,
+};
+
+const DEMAND_ZONES = [
+  { label: "BTM",         surge: "2.4×", color: "#FF4D4F", x: 165, y: 148, r: 36, latlng: { latitude: 12.9165, longitude: 77.6101 } },
+  { label: "Koramangala", surge: "2.1×", color: "#FF6B35", x: 202, y: 108, r: 30, latlng: { latitude: 12.9279, longitude: 77.6271 } },
+  { label: "Indiranagar", surge: "1.6×", color: "#FF9A3D", x: 258, y: 72,  r: 24, latlng: { latitude: 12.9784, longitude: 77.6408 } },
+  { label: "HSR",         surge: "1.2×", color: "#34C759", x: 138, y: 164, r: 20, latlng: { latitude: 12.9116, longitude: 77.6389 } },
+  { label: "Jayanagar",   surge: "1.8×", color: "#FF8C42", x: 154, y: 120, r: 26, latlng: { latitude: 12.9302, longitude: 77.5914 } },
+  { label: "Whitefield",  surge: "1.4×", color: "#FFCC00", x: 308, y: 88,  r: 22, latlng: { latitude: 12.9698, longitude: 77.7499 } },
+] as const;
 
 export default function MapScreen() {
   const colors = useColors();
@@ -211,19 +229,71 @@ export default function MapScreen() {
           </View>
         </View>
       ) : (
-        <View style={[styles.mapArea, { backgroundColor: colors.muted }]}>
-          <View style={styles.mapPlaceholder}>
-            <View style={[styles.mapIconWrap, { backgroundColor: colors.card }]}>
-              <Feather name="map" size={48} color={colors.primary} />
-            </View>
-            <Text style={[styles.mapTitle, { color: colors.foreground }]}>Live Demand Map</Text>
-            <Text style={[styles.mapSub, { color: colors.mutedForeground }]}>
-              See where orders are happening in real-time
-            </Text>
-          </View>
-          <View style={[styles.surgeOverlay, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={[styles.mapArea, { backgroundColor: "#1A2332", overflow: "hidden" }]}>
+          {Platform.OS !== "web" ? (
+            /* Native: real MapView with demand zone markers */
+            <MapView
+              style={StyleSheet.absoluteFill}
+              initialRegion={HEATMAP_REGION}
+              scrollEnabled={false}
+              pitchEnabled={false}
+              rotateEnabled={false}
+            >
+              {DEMAND_ZONES.map((zone) => (
+                <Marker key={zone.label} coordinate={zone.latlng} anchor={{ x: 0.5, y: 0.5 }}>
+                  <View style={styles.demandMarkerWrap}>
+                    <View style={[styles.demandMarkerRing, { borderColor: zone.color, backgroundColor: zone.color + "28" }]}>
+                      <Text style={[styles.demandMarkerSurge, { color: zone.color }]}>{zone.surge}</Text>
+                    </View>
+                    <Text style={styles.demandMarkerLabel}>{zone.label}</Text>
+                  </View>
+                </Marker>
+              ))}
+            </MapView>
+          ) : (
+            /* Web: SVG heatmap canvas */
+            <Svg width="100%" height="100%" viewBox="0 0 400 220">
+              {/* Background */}
+              <Rect x={0} y={0} width={400} height={220} fill="#1A2332" />
+
+              {/* Grid lines */}
+              {[50, 100, 150, 200, 250, 300, 350].map((x) => (
+                <Line key={`v${x}`} x1={x} y1={0} x2={x} y2={220} stroke="rgba(255,255,255,0.05)" strokeWidth={1} />
+              ))}
+              {[44, 88, 132, 176].map((y) => (
+                <Line key={`h${y}`} x1={0} y1={y} x2={400} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={1} />
+              ))}
+
+              {/* Road lines */}
+              <Line x1={0} y1={110} x2={400} y2={110} stroke="rgba(255,255,255,0.12)" strokeWidth={2} />
+              <Line x1={200} y1={0} x2={200} y2={220} stroke="rgba(255,255,255,0.12)" strokeWidth={2} />
+              <Line x1={0} y1={20} x2={380} y2={200} stroke="rgba(255,255,255,0.07)" strokeWidth={1.5} />
+              <Line x1={20} y1={200} x2={380} y2={20} stroke="rgba(255,255,255,0.07)" strokeWidth={1.5} />
+
+              {/* Demand heat blobs */}
+              {DEMAND_ZONES.map((zone) => (
+                <G key={zone.label}>
+                  <Circle cx={zone.x} cy={zone.y} r={zone.r * 2.8} fill={zone.color} opacity={0.06} />
+                  <Circle cx={zone.x} cy={zone.y} r={zone.r * 1.8} fill={zone.color} opacity={0.13} />
+                  <Circle cx={zone.x} cy={zone.y} r={zone.r} fill={zone.color} opacity={0.32} />
+                  <Circle cx={zone.x} cy={zone.y} r={zone.r * 0.42} fill={zone.color} opacity={1} />
+                  <SvgText x={zone.x} y={zone.y - zone.r - 5} fill={zone.color} fontSize={9} fontWeight="bold" textAnchor="middle" opacity={0.95}>{zone.label}</SvgText>
+                  <SvgText x={zone.x} y={zone.y + zone.r + 13} fill="white" fontSize={8} fontWeight="bold" textAnchor="middle" opacity={0.75}>{zone.surge}</SvgText>
+                </G>
+              ))}
+
+              {/* User position */}
+              <Circle cx={200} cy={110} r={22} fill="#4A90E2" opacity={0.12} />
+              <Circle cx={200} cy={110} r={12} fill="#4A90E2" opacity={0.28} />
+              <Circle cx={200} cy={110} r={5.5} fill="#4A90E2" opacity={1} />
+              <Circle cx={200} cy={110} r={5.5} stroke="white" strokeWidth={1.5} fill="none" opacity={0.9} />
+            </Svg>
+          )}
+
+          {/* Live surge badge — over both native and web */}
+          <View style={[styles.surgeOverlay, { backgroundColor: "rgba(26,35,50,0.88)", borderColor: "#FF4D4F40" }]}>
             <View style={[styles.surgeDot, { backgroundColor: "#FF4D4F" }]} />
-            <Text style={[styles.surgeText, { color: colors.foreground }]}>Surge ×2.4 near BTM</Text>
+            <Text style={[styles.surgeText, { color: "#FFF" }]}>Surge ×2.4 near BTM</Text>
           </View>
         </View>
       )}
@@ -242,6 +312,7 @@ export default function MapScreen() {
                 <View style={[styles.updatedDot, { backgroundColor: colors.primary }]} />
                 <Text style={[styles.updatedText, { color: colors.primary }]}>In Progress</Text>
               </View>
+            </View>
             {[
               { label: "Items",      value: `${activeOrder.items.length} items`,      icon: "package"  },
               { label: "Customer",   value: activeOrder.customer.name,                icon: "user"     },
@@ -489,4 +560,22 @@ const styles = StyleSheet.create({
   calloutTitle: { fontSize: 13, fontWeight: "700" },
   calloutSub: { fontSize: 11, color: "#666", marginTop: 2 },
   calloutTag: { fontSize: 11, marginTop: 4, color: "#888" },
+  demandMarkerWrap: { alignItems: "center", gap: 2 },
+  demandMarkerRing: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  demandMarkerSurge: { fontSize: 12, fontFamily: "Inter_700Bold" },
+  demandMarkerLabel: {
+    fontSize: 9,
+    color: "#FFF",
+    fontFamily: "Inter_600SemiBold",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowRadius: 4,
+    textShadowOffset: { width: 0, height: 1 },
+  },
 });
