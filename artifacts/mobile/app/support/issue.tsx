@@ -1,55 +1,168 @@
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
+
+const ISSUE_TYPES = [
+  { id: "payment", label: "Payment Issue", icon: "credit-card", color: "#34C759" },
+  { id: "order", label: "Order Problem", icon: "package", color: "#FF6B35" },
+  { id: "app", label: "App / Technical", icon: "smartphone", color: "#4A90E2" },
+  { id: "account", label: "Account Issue", icon: "user", color: "#7C5CFF" },
+  { id: "safety", label: "Safety Concern", icon: "shield", color: "#FF4D4F" },
+  { id: "other", label: "Other", icon: "more-horizontal", color: "#5B5B5B" },
+];
+
+const PRIORITIES = ["Low", "Medium", "High", "Urgent"] as const;
 
 export default function IssueScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [issueType, setIssueType] = useState("");
+  const [priority, setPriority] = useState<typeof PRIORITIES[number]>("Medium");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  if (submitted) return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScreenHeader title="Report Issue" showBack />
-      <View style={styles.successState}>
-        <Text style={{ fontSize: 48 }}>✅</Text>
-        <Text style={[styles.successTitle, { color: colors.foreground }]}>Issue Reported</Text>
-        <Text style={[styles.successSub, { color: colors.mutedForeground }]}>We'll review and get back to you within 24 hours via SMS or app notification.</Text>
-        <Button title="Back to Support" onPress={() => router.push("/support/" as any)} size="xl" style={{ marginTop: 16 }} />
-      </View>
-    </View>
-  );
+  const handleSubmit = async () => {
+    if (!issueType || !description.trim()) {
+      Alert.alert("Fill all fields", "Please select issue type and describe the problem.");
+      return;
+    }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1200));
+    setLoading(false);
+    Alert.alert(
+      "Ticket Created! 🎫",
+      "Your support ticket has been created. Ticket #BRG-" + Math.floor(Math.random() * 90000 + 10000) + ". We'll respond within 24 hours.",
+      [{ text: "OK", onPress: () => router.back() }]
+    );
+  };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScreenHeader title="Report Issue" showBack />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]} keyboardShouldPersistTaps="handled">
-        <Text style={[styles.title, { color: colors.foreground }]}>Describe your issue</Text>
-        <Text style={[styles.sub, { color: colors.mutedForeground }]}>Provide as much detail as possible for faster resolution</Text>
-        <Input label="Issue Title" placeholder="Brief summary of the problem" value={title} onChangeText={setTitle} />
-        <Input label="Description" placeholder="Explain what happened in detail..." value={desc} onChangeText={setDesc} multiline numberOfLines={5} />
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScreenHeader title="Raise Issue" showBack />
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Issue Type */}
+        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Issue Type</Text>
+          <View style={styles.issueGrid}>
+            {ISSUE_TYPES.map((t) => (
+              <Pressable
+                key={t.id}
+                onPress={() => setIssueType(t.id)}
+                style={[
+                  styles.issueCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: issueType === t.id ? t.color : colors.border,
+                    borderWidth: issueType === t.id ? 2 : 1,
+                    borderRadius: colors.radiusSm,
+                  },
+                ]}
+              >
+                <View style={[styles.issueIcon, { backgroundColor: t.color + "18" }]}>
+                  <Feather name={t.icon as any} size={18} color={t.color} />
+                </View>
+                <Text style={[styles.issueLabel, { color: colors.foreground }]}>{t.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </Animated.View>
+
+        {/* Priority */}
+        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Priority</Text>
+          <View style={styles.priorityRow}>
+            {PRIORITIES.map((p) => {
+              const pColors: Record<string, string> = { Low: colors.success, Medium: colors.warning, High: colors.primary, Urgent: colors.destructive };
+              return (
+                <Pressable
+                  key={p}
+                  onPress={() => setPriority(p)}
+                  style={[
+                    styles.priorityChip,
+                    {
+                      backgroundColor: priority === p ? pColors[p] : colors.card,
+                      borderColor: priority === p ? pColors[p] : colors.border,
+                      borderRadius: 12,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.priorityText, { color: priority === p ? "#FFF" : colors.foreground }]}>{p}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Animated.View>
+
+        {/* Description */}
+        <Animated.View entering={FadeInDown.delay(160).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Describe the issue</Text>
+          <Card style={styles.descCard}>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              numberOfLines={6}
+              placeholder="Explain what happened, when it happened, and any relevant order numbers..."
+              placeholderTextColor={colors.mutedForeground}
+              style={[styles.descInput, { color: colors.foreground }]}
+              textAlignVertical="top"
+            />
+            <Text style={[styles.charCount, { color: colors.mutedForeground }]}>{description.length}/500</Text>
+          </Card>
+        </Animated.View>
       </ScrollView>
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 24, backgroundColor: colors.background }]}>
-        <Button title="Submit Issue" onPress={() => setSubmitted(true)} disabled={!title || !desc} size="xl" />
+
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16, borderTopColor: colors.border, backgroundColor: colors.background }]}>
+        <Button
+          title="Submit Ticket"
+          onPress={handleSubmit}
+          loading={loading}
+          disabled={!issueType || !description.trim()}
+          size="xl"
+        />
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingHorizontal: 24, gap: 16, paddingTop: 8 },
-  title: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.6 },
-  sub: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 22 },
-  footer: { paddingHorizontal: 24, paddingTop: 12 },
-  successState: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, gap: 12 },
-  successTitle: { fontSize: 26, fontFamily: "Inter_700Bold", letterSpacing: -0.6 },
-  successSub: { fontSize: 15, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 24 },
+  content: { paddingHorizontal: 20, gap: 20 },
+  sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold", letterSpacing: -0.3, marginBottom: 12 },
+  issueGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  issueCard: {
+    width: "47%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  issueIcon: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  issueLabel: { flex: 1, fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  priorityRow: { flexDirection: "row", gap: 10 },
+  priorityChip: { flex: 1, alignItems: "center", paddingVertical: 12, borderWidth: 1 },
+  priorityText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  descCard: { gap: 8 },
+  descInput: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 22, minHeight: 120 },
+  charCount: { fontSize: 11, fontFamily: "Inter_400Regular", textAlign: "right" },
+  footer: { paddingHorizontal: 20, paddingTop: 14, borderTopWidth: 1 },
 });

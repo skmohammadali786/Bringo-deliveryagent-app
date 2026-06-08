@@ -7,29 +7,24 @@ import {
   StyleSheet,
   Text,
   View,
-  ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 
 interface ScreenHeaderProps {
   title: string;
-  subtitle?: string;
   showBack?: boolean;
   right?: React.ReactNode;
-  style?: ViewStyle;
-  transparent?: boolean;
   onBack?: () => void;
+  transparent?: boolean;
 }
 
 export function ScreenHeader({
   title,
-  subtitle,
-  showBack = true,
+  showBack = false,
   right,
-  style,
-  transparent,
   onBack,
+  transparent = false,
 }: ScreenHeaderProps) {
   const colors = useColors();
   const router = useRouter();
@@ -48,31 +43,31 @@ export function ScreenHeader({
       style={[
         styles.header,
         {
-          paddingTop: insets.top + (Platform.OS === "web" ? 20 : 12),
+          paddingTop: insets.top + (Platform.OS === "web" ? 67 : 12),
           backgroundColor: transparent ? "transparent" : colors.background,
           borderBottomColor: transparent ? "transparent" : colors.border,
         },
-        style,
       ]}
     >
       <View style={styles.left}>
         {showBack && (
-          <Pressable onPress={handleBack} style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Pressable
+            onPress={handleBack}
+            style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Feather name="arrow-left" size={20} color={colors.foreground} />
           </Pressable>
         )}
       </View>
-      <View style={styles.center}>
-        <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={1}>
-          {title}
-        </Text>
-        {subtitle && (
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]} numberOfLines={1}>
-            {subtitle}
-          </Text>
-        )}
+
+      <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={1}>
+        {title}
+      </Text>
+
+      <View style={styles.right}>
+        {right ?? <View style={styles.placeholder} />}
       </View>
-      <View style={styles.right}>{right}</View>
     </View>
   );
 }
@@ -81,38 +76,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 0,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    gap: 8,
   },
-  left: {
-    width: 44,
-    alignItems: "flex-start",
-  },
-  right: {
-    width: 44,
-    alignItems: "flex-end",
-  },
-  center: {
-    flex: 1,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: -0.4,
-  },
-  subtitle: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
-  },
+  left: { width: 44, alignItems: "flex-start" },
+  right: { width: 44, alignItems: "flex-end" },
+  placeholder: { width: 44 },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  title: {
+    flex: 1,
+    fontSize: 17,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+    letterSpacing: -0.3,
   },
 });

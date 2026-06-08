@@ -1,46 +1,132 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 
-const DOCS = [
-  { id: "aadhaar", label: "Aadhaar Card", status: "verified", route: "/(onboarding)/aadhaar-front" },
-  { id: "pan", label: "PAN Card", status: "verified", route: "/(onboarding)/pan" },
-  { id: "dl", label: "Driving Licence", status: "verified", route: "/(onboarding)/dl-front" },
-  { id: "rc", label: "Vehicle RC", status: "pending", route: "/(onboarding)/vehicle-rc" },
-  { id: "insurance", label: "Vehicle Insurance", status: "expiring", route: "/(onboarding)/insurance" },
+const DOCUMENTS = [
+  { id: "aadhar", label: "Aadhaar Card", icon: "credit-card", status: "verified", required: true },
+  { id: "pan", label: "PAN Card", icon: "file-text", status: "verified", required: true },
+  { id: "dl", label: "Driving License", icon: "truck", status: "verified", required: true },
+  { id: "photo", label: "Profile Photo", icon: "camera", status: "verified", required: true },
+  { id: "rc", label: "Vehicle RC Book", icon: "package", status: "pending", required: true },
+  { id: "insurance", label: "Vehicle Insurance", icon: "shield", status: "expired", required: true },
+  { id: "bank", label: "Bank Statement / Passbook", icon: "home", status: "not_uploaded", required: false },
 ];
+
+const STATUS_CONFIG = {
+  verified: { label: "Verified", color: "#34C759", icon: "check-circle" as const },
+  pending: { label: "Under Review", color: "#FF9A3D", icon: "clock" as const },
+  expired: { label: "Expired", color: "#FF4D4F", icon: "alert-circle" as const },
+  not_uploaded: { label: "Not Uploaded", color: "#5B5B5B", icon: "upload" as const },
+};
 
 export default function DocumentsScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [uploading, setUploading] = useState<string | null>(null);
 
-  const getVariant = (status: string) => status === "verified" ? "success" : status === "pending" ? "warning" : "destructive";
-  const getLabel = (status: string) => status === "verified" ? "Verified" : status === "pending" ? "Pending" : "Expiring Soon";
+  const handleUpload = async (docId: string) => {
+    setUploading(docId);
+    await new Promise((r) => setTimeout(r, 1500));
+    setUploading(null);
+    Alert.alert("Uploaded", "Document uploaded successfully. It will be reviewed within 24 hours.");
+  };
+
+  const verified = DOCUMENTS.filter((d) => d.status === "verified").length;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScreenHeader title="My Documents" showBack />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40, paddingTop: Platform.OS === "web" ? 20 : 0 }]}>
-        {DOCS.map((doc) => (
-          <Pressable
-            key={doc.id}
-            onPress={() => router.push(doc.route as any)}
-            style={[styles.docCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}
-          >
-            <View style={[styles.docIcon, { backgroundColor: colors.muted }]}>
-              <Feather name="file-text" size={20} color={colors.foreground} />
+      <ScreenHeader title="Documents" showBack />
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Progress */}
+        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+          <Card style={styles.progressCard}>
+            <View style={styles.progressHeader}>
+              <Text style={[styles.progressTitle, { color: colors.foreground }]}>Verification Progress</Text>
+              <Text style={[styles.progressCount, { color: colors.success }]}>
+                {verified}/{DOCUMENTS.length} Verified
+              </Text>
             </View>
-            <Text style={[styles.docLabel, { color: colors.foreground }]}>{doc.label}</Text>
-            <Badge label={getLabel(doc.status)} variant={getVariant(doc.status) as any} dot />
-            <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-          </Pressable>
-        ))}
+            <View style={[styles.progressBar, { backgroundColor: colors.muted }]}>
+              <View
+                style={[
+                  styles.progressFill,
+                  { backgroundColor: colors.success, width: `${(verified / DOCUMENTS.length) * 100}%` },
+                ]}
+              />
+            </View>
+          </Card>
+        </Animated.View>
+
+        {/* Documents List */}
+        <Card padding={0}>
+          {DOCUMENTS.map((doc, i) => {
+            const cfg = STATUS_CONFIG[doc.status as keyof typeof STATUS_CONFIG];
+            return (
+              <View
+                key={doc.id}
+                style={[
+                  styles.docRow,
+                  {
+                    borderBottomColor: colors.border,
+                    borderBottomWidth: i < DOCUMENTS.length - 1 ? 1 : 0,
+                  },
+                ]}
+              >
+                <View style={[styles.docIcon, { backgroundColor: cfg.color + "14" }]}>
+                  <Feather name={doc.icon as any} size={18} color={cfg.color} />
+                </View>
+                <View style={styles.docInfo}>
+                  <View style={styles.docTop}>
+                    <Text style={[styles.docLabel, { color: colors.foreground }]}>{doc.label}</Text>
+                    {!doc.required && (
+                      <View style={[styles.optionalTag, { backgroundColor: colors.muted }]}>
+                        <Text style={[styles.optionalText, { color: colors.mutedForeground }]}>Optional</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.docStatus}>
+                    <Feather name={cfg.icon} size={12} color={cfg.color} />
+                    <Text style={[styles.docStatusText, { color: cfg.color }]}>{cfg.label}</Text>
+                  </View>
+                </View>
+                {["not_uploaded", "expired"].includes(doc.status) && (
+                  <Pressable
+                    onPress={() => handleUpload(doc.id)}
+                    style={[styles.uploadBtn, { backgroundColor: colors.primaryLight, borderRadius: 10 }]}
+                  >
+                    {uploading === doc.id ? (
+                      <Text style={[styles.uploadText, { color: colors.primary }]}>...</Text>
+                    ) : (
+                      <>
+                        <Feather name="upload" size={14} color={colors.primary} />
+                        <Text style={[styles.uploadText, { color: colors.primary }]}>Upload</Text>
+                      </>
+                    )}
+                  </Pressable>
+                )}
+              </View>
+            );
+          })}
+        </Card>
+
+        {/* Info */}
+        <Card style={[styles.infoCard, { backgroundColor: colors.infoLight }]}>
+          <Feather name="info" size={16} color={colors.info} />
+          <Text style={[styles.infoText, { color: colors.info }]}>
+            All documents are securely encrypted and processed in compliance with data protection laws.
+          </Text>
+        </Card>
       </ScrollView>
     </View>
   );
@@ -48,8 +134,24 @@ export default function DocumentsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingHorizontal: 20, gap: 10 },
-  docCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderWidth: 1 },
-  docIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  docLabel: { flex: 1, fontSize: 15, fontFamily: "Inter_500Medium" },
+  content: { paddingHorizontal: 20, gap: 16 },
+  progressCard: { gap: 12 },
+  progressHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  progressTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  progressCount: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  progressBar: { height: 8, borderRadius: 4, overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 4 },
+  docRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14 },
+  docIcon: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  docInfo: { flex: 1, gap: 4 },
+  docTop: { flexDirection: "row", alignItems: "center", gap: 8 },
+  docLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  optionalTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  optionalText: { fontSize: 10, fontFamily: "Inter_500Medium" },
+  docStatus: { flexDirection: "row", alignItems: "center", gap: 4 },
+  docStatusText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  uploadBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 8 },
+  uploadText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  infoCard: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 14 },
+  infoText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
 });

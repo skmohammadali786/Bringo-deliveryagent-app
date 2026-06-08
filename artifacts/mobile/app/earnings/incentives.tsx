@@ -1,17 +1,54 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 
-const INCENTIVES = [
-  { id: "1", title: "5-Order Bonus", desc: "Complete 5 orders today", reward: "₹200", progress: 3, target: 5, deadline: "Today 11:59 PM", active: true },
-  { id: "2", title: "Weekend Warrior", desc: "10 orders on Saturday & Sunday", reward: "₹500", progress: 6, target: 10, deadline: "Sunday 11:59 PM", active: true },
-  { id: "3", title: "Peak Hour Hero", desc: "3 deliveries between 12–2 PM", reward: "₹150", progress: 3, target: 3, deadline: "Completed", active: false },
-  { id: "4", title: "Monthly Milestone", desc: "150 deliveries this month", reward: "₹2,000", progress: 120, target: 150, deadline: "Mar 31", active: true },
+const ACTIVE_INCENTIVES = [
+  {
+    id: "1",
+    title: "Peak Hours Bonus",
+    desc: "Earn ₹50 extra per order between 7–9 PM",
+    icon: "zap",
+    color: "#FFB800",
+    progress: 3,
+    target: 5,
+    reward: "₹150",
+    expires: "Today 9 PM",
+    active: true,
+  },
+  {
+    id: "2",
+    title: "Weekend Warrior",
+    desc: "Complete 15 orders this weekend for ₹500 bonus",
+    icon: "sun",
+    color: "#FF6B35",
+    progress: 9,
+    target: 15,
+    reward: "₹500",
+    expires: "Sun 11:59 PM",
+    active: true,
+  },
+  {
+    id: "3",
+    title: "5-Star Streak",
+    desc: "Get 10 consecutive 5-star ratings",
+    icon: "star",
+    color: "#FFB800",
+    progress: 7,
+    target: 10,
+    reward: "₹200",
+    expires: "Ongoing",
+    active: true,
+  },
+];
+
+const UPCOMING_INCENTIVES = [
+  { id: "4", title: "Monday Surge", desc: "3× earnings on Mondays 8–10 AM", icon: "trending-up", color: "#7C5CFF", reward: "+3×", starts: "Mon 8 AM" },
+  { id: "5", title: "New Area Bonus", desc: "Extra ₹30 per order in Electronic City", icon: "map-pin", color: "#4A90E2", reward: "+₹30/order", starts: "Jun 15" },
 ];
 
 export default function IncentivesScreen() {
@@ -20,35 +57,87 @@ export default function IncentivesScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScreenHeader title="Active Incentives" showBack />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40, paddingTop: Platform.OS === "web" ? 20 : 0 }]}>
-        {INCENTIVES.map((inc) => (
-          <Card key={inc.id} style={[styles.card, { borderColor: inc.active && inc.progress >= inc.target ? colors.success : colors.border }]}>
-            <View style={styles.cardTop}>
-              <View style={[styles.icon, { backgroundColor: inc.active && inc.progress < inc.target ? colors.primaryLight : colors.successLight }]}>
-                <Feather name="award" size={22} color={inc.active && inc.progress < inc.target ? colors.primary : colors.success} />
-              </View>
-              <View style={styles.titleSection}>
-                <Text style={[styles.incTitle, { color: colors.foreground }]}>{inc.title}</Text>
-                <Text style={[styles.incDesc, { color: colors.mutedForeground }]}>{inc.desc}</Text>
-              </View>
-              <Text style={[styles.reward, { color: colors.success }]}>{inc.reward}</Text>
-            </View>
-            {inc.progress < inc.target ? (
-              <>
-                <View style={[styles.progressBg, { backgroundColor: colors.muted }]}>
-                  <View style={[styles.progressFill, { backgroundColor: colors.primary, width: `${(inc.progress / inc.target) * 100}%` }]} />
-                </View>
-                <View style={styles.progressLabels}>
-                  <Text style={[styles.progressText, { color: colors.mutedForeground }]}>{inc.progress}/{inc.target} completed</Text>
-                  <Text style={[styles.deadline, { color: colors.warning }]}>{inc.deadline}</Text>
-                </View>
-              </>
-            ) : (
-              <Badge label="Completed! Bonus credited." variant="success" />
-            )}
+      <ScreenHeader title="Incentives & Bonuses" showBack />
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Summary */}
+        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+          <Card style={[styles.summaryCard, { backgroundColor: "#1A1A2E" }]}>
+            <Text style={styles.summaryHeading}>Potential Today</Text>
+            <Text style={styles.summaryValue}>₹850</Text>
+            <Text style={styles.summarySub}>In active incentive rewards</Text>
           </Card>
-        ))}
+        </Animated.View>
+
+        {/* Active Incentives */}
+        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Active Incentives</Text>
+            <View style={[styles.activeBadge, { backgroundColor: colors.successLight }]}>
+              <View style={[styles.activeDot, { backgroundColor: colors.success }]} />
+              <Text style={[styles.activeText, { color: colors.success }]}>Live</Text>
+            </View>
+          </View>
+          {ACTIVE_INCENTIVES.map((inc, i) => (
+            <Animated.View key={inc.id} entering={FadeInDown.delay(100 + i * 70).duration(400)}>
+              <Card style={styles.incentiveCard}>
+                <View style={styles.incTop}>
+                  <View style={[styles.incIcon, { backgroundColor: inc.color + "18" }]}>
+                    <Feather name={inc.icon as any} size={22} color={inc.color} />
+                  </View>
+                  <View style={styles.incInfo}>
+                    <Text style={[styles.incTitle, { color: colors.foreground }]}>{inc.title}</Text>
+                    <Text style={[styles.incDesc, { color: colors.mutedForeground }]}>{inc.desc}</Text>
+                  </View>
+                  <View style={[styles.rewardBadge, { backgroundColor: inc.color + "18" }]}>
+                    <Text style={[styles.rewardText, { color: inc.color }]}>{inc.reward}</Text>
+                  </View>
+                </View>
+                <View style={styles.incProgress}>
+                  <View style={[styles.progressBarBg, { backgroundColor: colors.muted }]}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { backgroundColor: inc.color, width: `${(inc.progress / inc.target) * 100}%` },
+                      ]}
+                    />
+                  </View>
+                  <View style={styles.progressMeta}>
+                    <Text style={[styles.progressLabel, { color: colors.mutedForeground }]}>
+                      {inc.progress}/{inc.target} completed
+                    </Text>
+                    <Text style={[styles.expiresText, { color: colors.mutedForeground }]}>Expires: {inc.expires}</Text>
+                  </View>
+                </View>
+              </Card>
+            </Animated.View>
+          ))}
+        </Animated.View>
+
+        {/* Upcoming */}
+        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Upcoming Incentives</Text>
+          <Card padding={0}>
+            {UPCOMING_INCENTIVES.map((inc, i) => (
+              <View
+                key={inc.id}
+                style={[styles.upcomingRow, { borderBottomColor: colors.border, borderBottomWidth: i < UPCOMING_INCENTIVES.length - 1 ? 1 : 0 }]}
+              >
+                <View style={[styles.upcomingIcon, { backgroundColor: inc.color + "14" }]}>
+                  <Feather name={inc.icon as any} size={18} color={inc.color} />
+                </View>
+                <View style={styles.upcomingInfo}>
+                  <Text style={[styles.upcomingTitle, { color: colors.foreground }]}>{inc.title}</Text>
+                  <Text style={[styles.upcomingDesc, { color: colors.mutedForeground }]}>{inc.desc}</Text>
+                  <Text style={[styles.upcomingStarts, { color: colors.primary }]}>Starts: {inc.starts}</Text>
+                </View>
+                <Text style={[styles.upcomingReward, { color: inc.color }]}>{inc.reward}</Text>
+              </View>
+            ))}
+          </Card>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -56,17 +145,35 @@ export default function IncentivesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingHorizontal: 20, gap: 14 },
-  card: { gap: 14 },
-  cardTop: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
-  icon: { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center" },
-  titleSection: { flex: 1, gap: 2 },
-  incTitle: { fontSize: 15, fontFamily: "Inter_700Bold", letterSpacing: -0.2 },
-  incDesc: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  reward: { fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
-  progressBg: { height: 8, borderRadius: 4, overflow: "hidden" },
-  progressFill: { height: "100%", borderRadius: 4 },
-  progressLabels: { flexDirection: "row", justifyContent: "space-between" },
-  progressText: { fontSize: 12, fontFamily: "Inter_500Medium" },
-  deadline: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  content: { paddingHorizontal: 20, gap: 20 },
+  summaryCard: { alignItems: "center", gap: 6 },
+  summaryHeading: { fontSize: 13, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.7)" },
+  summaryValue: { fontSize: 44, fontFamily: "Inter_700Bold", color: "#FFF", letterSpacing: -2 },
+  summarySub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.6)" },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  sectionTitle: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  activeBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  activeDot: { width: 7, height: 7, borderRadius: 3.5 },
+  activeText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  incentiveCard: { gap: 12 },
+  incTop: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  incIcon: { width: 48, height: 48, borderRadius: 16, alignItems: "center", justifyContent: "center", marginTop: 2 },
+  incInfo: { flex: 1, gap: 3 },
+  incTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  incDesc: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  rewardBadge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
+  rewardText: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  incProgress: { gap: 8 },
+  progressBarBg: { height: 8, borderRadius: 4, overflow: "hidden" },
+  progressBarFill: { height: "100%", borderRadius: 4 },
+  progressMeta: { flexDirection: "row", justifyContent: "space-between" },
+  progressLabel: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  expiresText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  upcomingRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14 },
+  upcomingIcon: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  upcomingInfo: { flex: 1, gap: 2 },
+  upcomingTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  upcomingDesc: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  upcomingStarts: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  upcomingReward: { fontSize: 14, fontFamily: "Inter_700Bold" },
 });

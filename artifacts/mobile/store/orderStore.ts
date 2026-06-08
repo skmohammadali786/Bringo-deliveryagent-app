@@ -1,4 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 export type OrderStatus =
   | "new"
@@ -16,210 +18,282 @@ export interface OrderItem {
   quantity: number;
   price: number;
   unit?: string;
-  available?: boolean;
-  confirmedPrice?: number;
-}
-
-export interface Shop {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  distance: string;
-  rating: number;
-  category: string;
-}
-
-export interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  address: string;
-  landmark?: string;
-  lat?: number;
-  lng?: number;
+  imageUrl?: string;
+  status?: "available" | "unavailable" | "substituted";
 }
 
 export interface Order {
   id: string;
   orderNumber: string;
   status: OrderStatus;
-  shop: Shop;
-  customer: Customer;
+  shop: {
+    id: string;
+    name: string;
+    address: string;
+    phone: string;
+    lat?: number;
+    lng?: number;
+    type?: string;
+    distance?: string;
+  };
+  customer: {
+    name: string;
+    phone: string;
+    address: string;
+    landmark?: string;
+    lat?: number;
+    lng?: number;
+  };
   items: OrderItem[];
   totalAmount: number;
   deliveryFee: number;
+  platformFee?: number;
   distance: string;
   estimatedTime: string;
-  pickupOtp?: string;
-  deliveryOtp?: string;
-  createdAt: string;
-  acceptedAt?: string;
-  pickedAt?: string;
-  deliveredAt?: string;
-  instructions?: string;
-  paymentMode: "prepaid" | "cod";
+  paymentMode: "cod" | "prepaid";
   codAmount?: number;
+  instructions?: string;
+  priority?: "standard" | "express" | "scheduled";
+  scheduledTime?: string;
+  createdAt: string;
+  deliveredAt?: string;
 }
 
-const MOCK_ORDERS: Order[] = [
+const DEMO_ORDERS: Order[] = [
   {
-    id: "1",
+    id: "ord-001",
     orderNumber: "BRG-2024-001",
     status: "new",
     shop: {
-      id: "s1",
-      name: "Green Mart",
-      address: "12 MG Road, Bangalore",
-      phone: "+91 98765 43210",
+      id: "shop-001",
+      name: "Green Mart Superstore",
+      address: "12, MG Road, Koramangala, Bengaluru",
+      phone: "+919876543210",
+      lat: 12.9350,
+      lng: 77.6249,
+      type: "Grocery",
       distance: "0.8 km",
-      rating: 4.5,
-      category: "Grocery",
     },
     customer: {
-      id: "c1",
       name: "Priya Sharma",
-      phone: "+91 87654 32109",
-      address: "45 Indiranagar, 1st Cross, Bangalore",
-      landmark: "Near HDFC Bank",
-      lat: 12.9783,
-      lng: 77.6408,
+      phone: "+919123456789",
+      address: "Flat 304, Sunshine Apartments, 5th Block, Koramangala",
+      landmark: "Near Coffee Day",
+      lat: 12.9352,
+      lng: 77.6180,
     },
     items: [
-      { id: "i1", name: "Organic Tomatoes", quantity: 1, price: 80, unit: "500g" },
-      { id: "i2", name: "Fresh Milk", quantity: 2, price: 60, unit: "500ml" },
-      { id: "i3", name: "Whole Wheat Bread", quantity: 1, price: 45, unit: "pkt" },
+      { id: "i1", name: "Amul Full Cream Milk", quantity: 2, price: 66, unit: "500ml each" },
+      { id: "i2", name: "Brown Bread", quantity: 1, price: 45, unit: "Britannia" },
+      { id: "i3", name: "Tata Salt", quantity: 1, price: 28, unit: "1kg" },
+      { id: "i4", name: "Parle-G Biscuits", quantity: 3, price: 10, unit: "100g each" },
     ],
-    totalAmount: 245,
-    deliveryFee: 35,
-    distance: "2.3 km",
-    estimatedTime: "25 min",
-    pickupOtp: "4521",
-    deliveryOtp: "7893",
-    createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
-    instructions: "Please call before coming",
+    totalAmount: 235,
+    deliveryFee: 55,
+    distance: "1.4 km",
+    estimatedTime: "18 min",
     paymentMode: "prepaid",
+    instructions: "Please ring the bell twice. Leave at door if not home.",
+    priority: "express",
+    createdAt: new Date().toISOString(),
   },
   {
-    id: "2",
+    id: "ord-002",
     orderNumber: "BRG-2024-002",
     status: "accepted",
     shop: {
-      id: "s2",
-      name: "MedPlus Pharmacy",
-      address: "34 Koramangala, Bangalore",
-      phone: "+91 97654 32100",
-      distance: "1.2 km",
-      rating: 4.8,
-      category: "Pharmacy",
+      id: "shop-002",
+      name: "FreshKart Vegetables",
+      address: "89, Sarjapur Road, BTM Layout, Bengaluru",
+      phone: "+919876543211",
+      lat: 12.9165,
+      lng: 77.6101,
+      type: "Vegetables & Fruits",
+      distance: "0.6 km",
     },
     customer: {
-      id: "c2",
       name: "Rahul Verma",
-      phone: "+91 76543 21098",
-      address: "78 Koramangala 5th Block, Bangalore",
-      lat: 12.9352,
-      lng: 77.6245,
+      phone: "+919234567890",
+      address: "House 14, 2nd Cross, BTM 2nd Stage, Bengaluru",
+      lat: 12.9140,
+      lng: 77.6100,
     },
     items: [
-      { id: "i4", name: "Paracetamol 500mg", quantity: 2, price: 28, unit: "strip" },
-      { id: "i5", name: "Vitamin C Tablets", quantity: 1, price: 149, unit: "bottle" },
+      { id: "i5", name: "Tomatoes", quantity: 1, price: 40, unit: "500g" },
+      { id: "i6", name: "Onions", quantity: 1, price: 35, unit: "1kg" },
+      { id: "i7", name: "Potatoes", quantity: 2, price: 30, unit: "500g each" },
     ],
-    totalAmount: 205,
-    deliveryFee: 30,
-    distance: "1.8 km",
-    estimatedTime: "15 min",
-    deliveryOtp: "3421",
-    createdAt: new Date(Date.now() - 12 * 60000).toISOString(),
+    totalAmount: 135,
+    deliveryFee: 40,
+    distance: "2.1 km",
+    estimatedTime: "22 min",
     paymentMode: "cod",
-    codAmount: 235,
+    codAmount: 135,
+    priority: "standard",
+    createdAt: new Date(Date.now() - 300000).toISOString(),
   },
   {
-    id: "3",
+    id: "ord-003",
     orderNumber: "BRG-2024-003",
     status: "delivered",
     shop: {
-      id: "s3",
-      name: "Bake Studio",
-      address: "22 HSR Layout, Bangalore",
-      phone: "+91 96543 21009",
-      distance: "2.1 km",
-      rating: 4.9,
-      category: "Bakery",
+      id: "shop-003",
+      name: "Quick Bites Restaurant",
+      address: "45, Indiranagar 100ft Road, Bengaluru",
+      phone: "+919876543212",
+      lat: 12.9784,
+      lng: 77.6408,
+      type: "Restaurant",
+      distance: "1.2 km",
     },
     customer: {
-      id: "c3",
-      name: "Anjali Singh",
-      phone: "+91 65432 10987",
-      address: "90 HSR Layout Sector 2, Bangalore",
-      lat: 12.9116,
-      lng: 77.6474,
+      name: "Ananya Patel",
+      phone: "+919345678901",
+      address: "402, Embassy Springs, Domlur, Bengaluru",
+      landmark: "Opposite HDFC Bank",
     },
     items: [
-      { id: "i6", name: "Chocolate Cake", quantity: 1, price: 550, unit: "pcs" },
-      { id: "i7", name: "Croissant", quantity: 4, price: 60, unit: "pcs" },
+      { id: "i8", name: "Veg Biryani", quantity: 2, price: 180, unit: "Full plate" },
+      { id: "i9", name: "Raita", quantity: 1, price: 40 },
     ],
-    totalAmount: 790,
-    deliveryFee: 50,
-    distance: "3.5 km",
-    estimatedTime: "30 min",
-    deliveryOtp: "9012",
-    createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
-    deliveredAt: new Date(Date.now() - 90 * 60000).toISOString(),
+    totalAmount: 400,
+    deliveryFee: 65,
+    distance: "3.2 km",
+    estimatedTime: "32 min",
     paymentMode: "prepaid",
+    priority: "express",
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+    deliveredAt: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: "ord-004",
+    orderNumber: "BRG-2024-004",
+    status: "delivered",
+    shop: {
+      id: "shop-001",
+      name: "Green Mart Superstore",
+      address: "12, MG Road, Koramangala, Bengaluru",
+      phone: "+919876543210",
+      type: "Grocery",
+      distance: "1.5 km",
+    },
+    customer: {
+      name: "Vikram Singh",
+      phone: "+919456789012",
+      address: "Villa 7, Palm Meadows, Whitefield, Bengaluru",
+    },
+    items: [
+      { id: "i10", name: "Surf Excel Detergent", quantity: 1, price: 250, unit: "3kg" },
+      { id: "i11", name: "Colgate Toothpaste", quantity: 2, price: 85, unit: "150g each" },
+    ],
+    totalAmount: 420,
+    deliveryFee: 50,
+    distance: "1.9 km",
+    estimatedTime: "25 min",
+    paymentMode: "prepaid",
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    deliveredAt: new Date(Date.now() - 82800000).toISOString(),
+  },
+  {
+    id: "ord-005",
+    orderNumber: "BRG-2024-005",
+    status: "cancelled",
+    shop: {
+      id: "shop-004",
+      name: "MedPlus Pharmacy",
+      address: "22, 80ft Road, Indiranagar, Bengaluru",
+      phone: "+919876543213",
+      type: "Pharmacy",
+      distance: "2.0 km",
+    },
+    customer: {
+      name: "Deepika Rao",
+      phone: "+919567890123",
+      address: "B-204, Godrej Garden City, Judicial Layout, Bengaluru",
+    },
+    items: [
+      { id: "i12", name: "Dolo 650", quantity: 2, price: 33, unit: "Strip of 15" },
+    ],
+    totalAmount: 66,
+    deliveryFee: 30,
+    distance: "2.8 km",
+    estimatedTime: "28 min",
+    paymentMode: "prepaid",
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
   },
 ];
 
 interface OrderState {
   orders: Order[];
   activeOrderId: string | null;
-  pendingOrderId: string | null;
 
-  setOrders: (orders: Order[]) => void;
   addOrder: (order: Order) => void;
-  updateOrderStatus: (id: string, status: OrderStatus) => void;
-  setActiveOrderId: (id: string | null) => void;
-  setPendingOrderId: (id: string | null) => void;
-  getOrder: (id: string) => Order | undefined;
-  getOrdersByStatus: (status: OrderStatus) => Order[];
   acceptOrder: (id: string) => void;
   rejectOrder: (id: string) => void;
+  updateOrderStatus: (id: string, status: OrderStatus) => void;
+  updateOrderItem: (orderId: string, itemId: string, status: OrderItem["status"]) => void;
+  setActiveOrder: (id: string | null) => void;
+  getOrder: (id: string) => Order | undefined;
 }
 
-export const useOrderStore = create<OrderState>((set, get) => ({
-  orders: MOCK_ORDERS,
-  activeOrderId: "2",
-  pendingOrderId: "1",
+export const useOrderStore = create<OrderState>()(
+  persist(
+    (set, get) => ({
+      orders: DEMO_ORDERS,
+      activeOrderId: null,
 
-  setOrders: (orders) => set({ orders }),
-  addOrder: (order) => set((s) => ({ orders: [order, ...s.orders] })),
-  updateOrderStatus: (id, status) =>
-    set((s) => ({
-      orders: s.orders.map((o) =>
-        o.id === id ? { ...o, status } : o
-      ),
-    })),
-  setActiveOrderId: (id) => set({ activeOrderId: id }),
-  setPendingOrderId: (id) => set({ pendingOrderId: id }),
-  getOrder: (id) => get().orders.find((o) => o.id === id),
-  getOrdersByStatus: (status) => get().orders.filter((o) => o.status === status),
-  acceptOrder: (id) => {
-    set((s) => ({
-      orders: s.orders.map((o) =>
-        o.id === id
-          ? { ...o, status: "accepted", acceptedAt: new Date().toISOString() }
-          : o
-      ),
-      activeOrderId: id,
-      pendingOrderId: null,
-    }));
-  },
-  rejectOrder: (id) => {
-    set((s) => ({
-      orders: s.orders.map((o) =>
-        o.id === id ? { ...o, status: "cancelled" } : o
-      ),
-      pendingOrderId: null,
-    }));
-  },
-}));
+      addOrder: (order) =>
+        set((s) => ({ orders: [order, ...s.orders] })),
+
+      acceptOrder: (id) =>
+        set((s) => ({
+          orders: s.orders.map((o) =>
+            o.id === id ? { ...o, status: "accepted" } : o
+          ),
+          activeOrderId: id,
+        })),
+
+      rejectOrder: (id) =>
+        set((s) => ({
+          orders: s.orders.map((o) =>
+            o.id === id ? { ...o, status: "cancelled" } : o
+          ),
+          activeOrderId: s.activeOrderId === id ? null : s.activeOrderId,
+        })),
+
+      updateOrderStatus: (id, status) =>
+        set((s) => ({
+          orders: s.orders.map((o) =>
+            o.id === id
+              ? { ...o, status, ...(status === "delivered" ? { deliveredAt: new Date().toISOString() } : {}) }
+              : o
+          ),
+          activeOrderId:
+            status === "delivered" || status === "cancelled" || status === "failed"
+              ? null
+              : s.activeOrderId,
+        })),
+
+      updateOrderItem: (orderId, itemId, status) =>
+        set((s) => ({
+          orders: s.orders.map((o) =>
+            o.id === orderId
+              ? {
+                  ...o,
+                  items: o.items.map((item) =>
+                    item.id === itemId ? { ...item, status } : item
+                  ),
+                }
+              : o
+          ),
+        })),
+
+      setActiveOrder: (id) => set({ activeOrderId: id }),
+      getOrder: (id) => get().orders.find((o) => o.id === id),
+    }),
+    {
+      name: "bringo-orders",
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);

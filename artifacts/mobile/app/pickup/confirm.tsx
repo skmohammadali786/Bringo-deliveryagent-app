@@ -1,8 +1,11 @@
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
 import { useOrderStore } from "@/store/orderStore";
@@ -11,43 +14,120 @@ export default function PickupConfirmScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { orders, activeOrderId, updateOrderStatus } = useOrderStore();
-  const order = orders.find((o) => o.id === activeOrderId) ?? orders[1];
-  const [otp, setOtp] = useState(Array(4).fill(""));
-  const [error, setError] = useState("");
-  const inputRef = useRef<TextInput>(null);
-  const filledCount = otp.filter(Boolean).length;
+  const { orders, updateOrderStatus } = useOrderStore();
+  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [loading, setLoading] = useState(false);
+  const refs = [useRef<TextInput>(null), useRef<TextInput>(null), useRef<TextInput>(null), useRef<TextInput>(null)];
 
-  const verify = () => {
-    const code = otp.join("");
-    if (code !== order?.pickupOtp) {
-      setError("Incorrect OTP. Please try again.");
+  const activeOrder = orders.find((o) => o.status === "at_shop");
+
+  const handleOtpChange = (val: string, idx: number) => {
+    const next = [...otp];
+    next[idx] = val;
+    setOtp(next);
+    if (val && idx < 3) refs[idx + 1].current?.focus();
+    if (!val && idx > 0) refs[idx - 1].current?.focus();
+  };
+
+  const fullOtp = otp.join("");
+
+  const handleConfirm = async () => {
+    if (fullOtp.length !== 4) {
+      Alert.alert("Enter OTP", "Please enter the 4-digit OTP from the shop.");
       return;
     }
-    updateOrderStatus(order.id, "picked_up");
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1000));
+    if (activeOrder) updateOrderStatus(activeOrder.id, "picked_up");
+    setLoading(false);
     router.push("/pickup/proof" as any);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title="Confirm Pickup" showBack />
-      <View style={[styles.content, { paddingTop: Platform.OS === "web" ? 40 : 40 }]}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Enter Pickup OTP</Text>
-        <Text style={[styles.sub, { color: colors.mutedForeground }]}>
-          Ask the shop owner for the 4-digit OTP to confirm pickup
-        </Text>
-        <Pressable onPress={() => inputRef.current?.focus()} style={styles.otpRow}>
-          {otp.map((digit, i) => (
-            <View key={i} style={[styles.otpBox, { backgroundColor: digit ? colors.primaryLight : colors.card, borderColor: i === filledCount && !digit ? colors.primary : digit ? colors.primary : colors.border, borderRadius: colors.radiusSm }]}>
-              <Text style={[styles.otpDigit, { color: colors.foreground }]}>{digit}</Text>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 16 : 16 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Order Info */}
+        {activeOrder && (
+          <Animated.View entering={FadeInDown.delay(0).duration(400)}>
+            <Card style={styles.orderCard}>
+              <View style={[styles.shopIcon, { backgroundColor: colors.primaryLight }]}>
+                <Feather name="shopping-bag" size={24} color={colors.primary} />
+              </View>
+              <View style={styles.orderInfo}>
+                <Text style={[styles.shopName, { color: colors.foreground }]}>{activeOrder.shop.name}</Text>
+                <Text style={[styles.orderNum, { color: colors.mutedForeground }]}>
+                  {activeOrder.orderNumber} · {activeOrder.items.length} items
+                </Text>
+              </View>
+            </Card>
+          </Animated.View>
+        )}
+
+        {/* OTP Input */}
+        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+          <Card style={styles.otpCard}>
+            <Text style={[styles.otpTitle, { color: colors.foreground }]}>Enter Shop OTP</Text>
+            <Text style={[styles.otpSub, { color: colors.mutedForeground }]}>
+              Get the 4-digit OTP from the shop to confirm pickup
+            </Text>
+            <View style={styles.otpRow}>
+              {otp.map((val, idx) => (
+                <TextInput
+                  key={idx}
+                  ref={refs[idx]}
+                  value={val}
+                  onChangeText={(v) => handleOtpChange(v.slice(-1), idx)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  style={[
+                    styles.otpBox,
+                    {
+                      backgroundColor: val ? colors.primaryLight : colors.muted,
+                      borderColor: val ? colors.primary : colors.border,
+                      color: colors.foreground,
+                    },
+                  ]}
+                />
+              ))}
             </View>
-          ))}
-        </Pressable>
-        <TextInput ref={inputRef} value={otp.join("")} onChangeText={(t) => { const d = t.replace(/\D/g, "").slice(0, 4).split(""); const n = Array(4).fill(""); d.forEach((c, i) => (n[i] = c)); setOtp(n); setError(""); }} keyboardType="number-pad" maxLength={4} style={{ position: "absolute", opacity: 0 }} autoFocus />
-        {error ? <Text style={[styles.error, { color: colors.destructive }]}>{error}</Text> : null}
-      </View>
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
-        <Button title="Verify & Confirm Pickup" onPress={verify} disabled={filledCount !== 4} size="xl" />
+          </Card>
+        </Animated.View>
+
+        {/* Items Checklist */}
+        {activeOrder && (
+          <Animated.View entering={FadeInDown.delay(160).duration(400)}>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Items to Collect</Text>
+            <Card padding={0}>
+              {activeOrder.items.map((item, i) => (
+                <View
+                  key={item.id}
+                  style={[styles.itemRow, { borderBottomColor: colors.border, borderBottomWidth: i < activeOrder.items.length - 1 ? 1 : 0 }]}
+                >
+                  <View style={[styles.itemCheck, { backgroundColor: colors.successLight }]}>
+                    <Feather name="check" size={14} color={colors.success} />
+                  </View>
+                  <Text style={[styles.itemName, { color: colors.foreground }]}>{item.name}</Text>
+                  <Text style={[styles.itemQty, { color: colors.mutedForeground }]}>×{item.quantity}</Text>
+                </View>
+              ))}
+            </Card>
+          </Animated.View>
+        )}
+      </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16, borderTopColor: colors.border, backgroundColor: colors.background }]}>
+        <Button
+          title="Confirm Pickup"
+          onPress={handleConfirm}
+          loading={loading}
+          disabled={fullOtp.length < 4}
+          size="xl"
+          icon={<Feather name="check-circle" size={18} color="#FFF" />}
+        />
       </View>
     </View>
   );
@@ -55,12 +135,29 @@ export default function PickupConfirmScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 24, gap: 24, alignItems: "center" },
-  title: { fontSize: 26, fontFamily: "Inter_700Bold", letterSpacing: -0.8, textAlign: "center" },
-  sub: { fontSize: 15, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 24 },
-  otpRow: { flexDirection: "row", gap: 14, justifyContent: "center" },
-  otpBox: { width: 64, height: 72, alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
-  otpDigit: { fontSize: 28, fontFamily: "Inter_700Bold" },
-  error: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },
-  footer: { paddingHorizontal: 24 },
+  content: { paddingHorizontal: 20, gap: 20 },
+  orderCard: { flexDirection: "row", alignItems: "center", gap: 14 },
+  shopIcon: { width: 56, height: 56, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  orderInfo: { flex: 1, gap: 4 },
+  shopName: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  orderNum: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  otpCard: { alignItems: "center", gap: 16 },
+  otpTitle: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  otpSub: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },
+  otpRow: { flexDirection: "row", gap: 14 },
+  otpBox: {
+    width: 60,
+    height: 68,
+    borderRadius: 16,
+    borderWidth: 2,
+    fontSize: 28,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
+  itemRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14 },
+  itemCheck: { width: 28, height: 28, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  itemName: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
+  itemQty: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  footer: { paddingHorizontal: 20, paddingTop: 14, borderTopWidth: 1 },
 });

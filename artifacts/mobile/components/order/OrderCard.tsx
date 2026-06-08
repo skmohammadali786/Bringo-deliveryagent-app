@@ -1,41 +1,53 @@
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useColors } from "@/hooks/useColors";
-import { Order } from "@/store/orderStore";
-import { Badge } from "@/components/ui/Badge";
+import { Order, OrderStatus } from "@/store/orderStore";
 
-interface OrderCardProps {
+const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: string }> = {
+  new: { label: "New Request", color: "#FF9A3D", icon: "bell" },
+  accepted: { label: "Accepted", color: "#4A90E2", icon: "check-circle" },
+  at_shop: { label: "At Shop", color: "#7C5CFF", icon: "map-pin" },
+  picked_up: { label: "Picked Up", color: "#00BFA6", icon: "package" },
+  delivering: { label: "Delivering", color: "#4A90E2", icon: "navigation" },
+  delivered: { label: "Delivered", color: "#34C759", icon: "check" },
+  cancelled: { label: "Cancelled", color: "#FF4D4F", icon: "x-circle" },
+  failed: { label: "Failed", color: "#FF4D4F", icon: "alert-circle" },
+};
+
+interface Props {
   order: Order;
   compact?: boolean;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  new: "New Order",
-  accepted: "Active",
-  at_shop: "At Shop",
-  picked_up: "Picked Up",
-  delivering: "Delivering",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-  failed: "Failed",
-};
-
-const STATUS_VARIANTS: Record<string, "success" | "warning" | "destructive" | "primary" | "default"> = {
-  new: "warning",
-  accepted: "primary",
-  at_shop: "primary",
-  picked_up: "accent" as any,
-  delivering: "primary",
-  delivered: "success",
-  cancelled: "destructive",
-  failed: "destructive",
-};
-
-export function OrderCard({ order, compact }: OrderCardProps) {
+export function OrderCard({ order, compact = false }: Props) {
   const colors = useColors();
   const router = useRouter();
+  const cfg = STATUS_CONFIG[order.status];
+
+  if (compact) {
+    return (
+      <Pressable
+        onPress={() => router.push(`/order/${order.id}` as any)}
+        style={[styles.compactCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radiusSm }]}
+      >
+        <View style={[styles.compactIcon, { backgroundColor: cfg.color + "18" }]}>
+          <Feather name={cfg.icon as any} size={16} color={cfg.color} />
+        </View>
+        <View style={styles.compactInfo}>
+          <Text style={[styles.compactOrderNum, { color: colors.foreground }]}>{order.orderNumber}</Text>
+          <Text style={[styles.compactShop, { color: colors.mutedForeground }]} numberOfLines={1}>
+            {order.shop.name}
+          </Text>
+        </View>
+        <View style={styles.compactRight}>
+          <Text style={[styles.compactEarning, { color: colors.success }]}>+₹{order.deliveryFee}</Text>
+          <Text style={[styles.compactStatus, { color: cfg.color }]}>{cfg.label}</Text>
+        </View>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -44,73 +56,76 @@ export function OrderCard({ order, compact }: OrderCardProps) {
         styles.card,
         {
           backgroundColor: colors.card,
+          borderColor: order.status === "new" ? cfg.color + "50" : colors.border,
           borderRadius: colors.radius,
-          borderColor: colors.border,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.06,
-          shadowRadius: 10,
-          elevation: 3,
+          borderWidth: order.status === "new" ? 1.5 : 1,
         },
       ]}
     >
-      <View style={styles.topRow}>
-        <View style={styles.orderInfo}>
-          <Text style={[styles.orderNum, { color: colors.mutedForeground }]}>
-            {order.orderNumber}
-          </Text>
-          <Text style={[styles.shopName, { color: colors.foreground }]}>
-            {order.shop.name}
-          </Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={[styles.orderNum, { color: colors.foreground }]}>{order.orderNumber}</Text>
+          {order.priority === "express" && (
+            <View style={[styles.priorityTag, { backgroundColor: "#FF4D4F18" }]}>
+              <Text style={[styles.priorityText, { color: "#FF4D4F" }]}>EXPRESS</Text>
+            </View>
+          )}
         </View>
-        <Badge
-          label={STATUS_LABELS[order.status] || order.status}
-          variant={STATUS_VARIANTS[order.status] || "default"}
-          dot
-        />
+        <View style={[styles.statusBadge, { backgroundColor: cfg.color + "18" }]}>
+          <Feather name={cfg.icon as any} size={11} color={cfg.color} />
+          <Text style={[styles.statusText, { color: cfg.color }]}>{cfg.label}</Text>
+        </View>
       </View>
 
-      {!compact && (
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-      )}
-
-      {!compact && (
-        <View style={styles.details}>
-          <View style={styles.detailRow}>
-            <Feather name="map-pin" size={14} color={colors.mutedForeground} />
-            <Text style={[styles.detailText, { color: colors.mutedForeground }]} numberOfLines={1}>
-              {order.customer.address}
-            </Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Feather name="package" size={14} color={colors.mutedForeground} />
-            <Text style={[styles.detailText, { color: colors.mutedForeground }]}>
-              {order.items.length} item{order.items.length !== 1 ? "s" : ""}
-            </Text>
-            <View style={styles.dot} />
-            <Feather name="navigation" size={14} color={colors.mutedForeground} />
-            <Text style={[styles.detailText, { color: colors.mutedForeground }]}>
-              {order.distance}
+      {/* Route */}
+      <View style={styles.route}>
+        <View style={styles.routeRow}>
+          <View style={[styles.routeDot, { backgroundColor: colors.primary }]} />
+          <View style={styles.routeDetails}>
+            <Text style={[styles.routeHint, { color: colors.mutedForeground }]}>PICKUP</Text>
+            <Text style={[styles.routeName, { color: colors.foreground }]} numberOfLines={1}>
+              {order.shop.name}
             </Text>
           </View>
         </View>
-      )}
-
-      <View style={styles.footer}>
-        <View style={styles.earningsRow}>
-          <MaterialCommunityIcons name="currency-inr" size={16} color={colors.success} />
-          <Text style={[styles.earnings, { color: colors.success }]}>
-            {order.deliveryFee}
-          </Text>
-          <Text style={[styles.earningsLabel, { color: colors.mutedForeground }]}>
-            delivery fee
-          </Text>
+        <View style={[styles.routeLine, { backgroundColor: colors.border }]} />
+        <View style={styles.routeRow}>
+          <View style={[styles.routeDot, { backgroundColor: colors.success }]} />
+          <View style={styles.routeDetails}>
+            <Text style={[styles.routeHint, { color: colors.mutedForeground }]}>DELIVER TO</Text>
+            <Text style={[styles.routeName, { color: colors.foreground }]} numberOfLines={1}>
+              {order.customer.name}
+            </Text>
+          </View>
         </View>
-        <View style={styles.timeRow}>
-          <Feather name="clock" size={13} color={colors.mutedForeground} />
-          <Text style={[styles.time, { color: colors.mutedForeground }]}>
-            {order.estimatedTime}
-          </Text>
+      </View>
+
+      {/* Footer */}
+      <View style={[styles.footer, { borderTopColor: colors.border }]}>
+        <View style={styles.footerLeft}>
+          <View style={styles.metaItem}>
+            <Feather name="navigation" size={11} color={colors.mutedForeground} />
+            <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{order.distance}</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Feather name="clock" size={11} color={colors.mutedForeground} />
+            <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{order.estimatedTime}</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Feather name="package" size={11} color={colors.mutedForeground} />
+            <Text style={[styles.metaText, { color: colors.mutedForeground }]}>
+              {order.items.length} {order.items.length === 1 ? "item" : "items"}
+            </Text>
+          </View>
+          {order.paymentMode === "cod" && (
+            <View style={[styles.codTag, { backgroundColor: colors.warningLight }]}>
+              <Text style={[styles.codText, { color: colors.warning }]}>COD</Text>
+            </View>
+          )}
+        </View>
+        <View style={[styles.earningPill, { backgroundColor: colors.successLight }]}>
+          <Text style={[styles.earningText, { color: colors.success }]}>+₹{order.deliveryFee}</Text>
         </View>
       </View>
     </Pressable>
@@ -119,28 +134,80 @@ export function OrderCard({ order, compact }: OrderCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    padding: 16,
-    borderWidth: 1,
     marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+    overflow: "hidden",
   },
-  topRow: {
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
+    alignItems: "center",
+    padding: 16,
+    paddingBottom: 12,
   },
-  orderInfo: { flex: 1, marginRight: 12 },
-  orderNum: { fontSize: 11, fontFamily: "Inter_500Medium", letterSpacing: 0.5, marginBottom: 2 },
-  shopName: { fontSize: 16, fontFamily: "Inter_600SemiBold", letterSpacing: -0.3 },
-  divider: { height: 1, marginBottom: 12 },
-  details: { gap: 6, marginBottom: 12 },
-  detailRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  detailText: { fontSize: 13, fontFamily: "Inter_400Regular", flex: 1 },
-  dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: "#ccc" },
-  footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  earningsRow: { flexDirection: "row", alignItems: "center", gap: 2 },
-  earnings: { fontSize: 16, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
-  earningsLabel: { fontSize: 12, fontFamily: "Inter_400Regular", marginLeft: 2 },
-  timeRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  time: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
+  orderNum: { fontSize: 15, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
+  priorityTag: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6 },
+  priorityText: { fontSize: 9, fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  route: { paddingHorizontal: 16, paddingBottom: 14 },
+  routeRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  routeLine: { width: 1.5, height: 14, marginLeft: 6, marginVertical: 3 },
+  routeDot: { width: 14, height: 14, borderRadius: 7 },
+  routeDetails: { flex: 1 },
+  routeHint: { fontSize: 9, fontFamily: "Inter_700Bold", letterSpacing: 0.6 },
+  routeName: { fontSize: 14, fontFamily: "Inter_600SemiBold", marginTop: 1 },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+  },
+  footerLeft: { flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" },
+  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  metaText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  codTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  codText: { fontSize: 10, fontFamily: "Inter_700Bold" },
+  earningPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  earningText: { fontSize: 14, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
+  compactCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    gap: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  compactIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  compactInfo: { flex: 1, gap: 3 },
+  compactOrderNum: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  compactShop: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  compactRight: { alignItems: "flex-end", gap: 3 },
+  compactEarning: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  compactStatus: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
 });

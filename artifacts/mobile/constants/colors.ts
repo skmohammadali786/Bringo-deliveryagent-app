@@ -1,45 +1,54 @@
 const colors = {
   light: {
-    text: "#1C1C1E",
+    text: "#111111",
     tint: "#FF6B35",
 
     background: "#F7F5F0",
-    foreground: "#1C1C1E",
+    foreground: "#111111",
 
     card: "#FFFFFF",
-    cardForeground: "#1C1C1E",
+    cardForeground: "#111111",
     cardSurface: "#FAFAF8",
 
     primary: "#FF6B35",
     primaryForeground: "#FFFFFF",
     primaryLight: "#FFF0EB",
 
-    secondary: "#1C1C1E",
+    secondary: "#111111",
     secondaryForeground: "#FFFFFF",
 
     muted: "#EBE8E1",
-    mutedForeground: "#8C8C8C",
+    mutedForeground: "#5B5B5B",
 
     accent: "#FFB800",
-    accentForeground: "#1C1C1E",
+    accentForeground: "#111111",
     accentLight: "#FFF8E6",
+
+    accentPurple: "#7C5CFF",
+    accentPurpleLight: "#EEE9FF",
+    accentTeal: "#00BFA6",
+    accentTealLight: "#E0FAF7",
+
+    info: "#4A90E2",
+    infoLight: "#EBF3FC",
 
     success: "#34C759",
     successLight: "#E8F9EC",
     successForeground: "#FFFFFF",
 
-    warning: "#FF9F0A",
+    warning: "#FF9A3D",
     warningLight: "#FFF5E6",
 
-    destructive: "#FF3B30",
+    destructive: "#FF4D4F",
     destructiveForeground: "#FFFFFF",
-    destructiveLight: "#FFECEB",
+    destructiveLight: "#FFECEC",
 
     border: "#E0DCD4",
     input: "#E0DCD4",
 
-    shadow: "rgba(0,0,0,0.06)",
+    shadow: "rgba(0,0,0,0.05)",
     shadowMd: "rgba(0,0,0,0.10)",
+    shadowLg: "rgba(0,0,0,0.15)",
     overlay: "rgba(0,0,0,0.5)",
   },
 
@@ -68,22 +77,31 @@ const colors = {
     accentForeground: "#000000",
     accentLight: "#2E2300",
 
+    accentPurple: "#9D7FFF",
+    accentPurpleLight: "#1E1730",
+    accentTeal: "#00D4B8",
+    accentTealLight: "#0D2E2A",
+
+    info: "#4A90E2",
+    infoLight: "#1A2A40",
+
     success: "#34C759",
     successLight: "#0D2E16",
     successForeground: "#FFFFFF",
 
-    warning: "#FF9F0A",
+    warning: "#FF9A3D",
     warningLight: "#2E1E00",
 
-    destructive: "#FF453A",
+    destructive: "#FF4D4F",
     destructiveForeground: "#FFFFFF",
-    destructiveLight: "#2E0F0D",
+    destructiveLight: "#2E0F0F",
 
     border: "#38383A",
     input: "#38383A",
 
     shadow: "rgba(0,0,0,0.3)",
     shadowMd: "rgba(0,0,0,0.5)",
+    shadowLg: "rgba(0,0,0,0.7)",
     overlay: "rgba(0,0,0,0.7)",
   },
 
